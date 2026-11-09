@@ -36,8 +36,8 @@ svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stro
 
 /* header */
 header.top{background:var(--cream);position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
-.hbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:76px}
-.hnav{display:flex;gap:24px;font-size:12px;letter-spacing:.12em;white-space:nowrap;text-transform:uppercase;font-weight:500}
+.hbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;height:76px}
+.hnav{display:flex;gap:24px;overflow:hidden;min-width:0;font-size:12px;letter-spacing:.12em;white-space:nowrap;text-transform:uppercase;font-weight:500}
 .hnav a{padding:6px 0;border-bottom:1px solid transparent;transition:border-color .2s,color .2s}
 .hnav a:hover,.hnav a.on{color:var(--maroon);border-color:var(--gold)}
 .hnav.r{justify-content:flex-start}
@@ -51,8 +51,13 @@ header.top{background:var(--cream);position:sticky;top:0;z-index:40;border-botto
 .badge:empty,.badge[data-n="0"]{display:none}
 .menu-btn{display:none}
 .hleft{display:flex;align-items:center;gap:26px}
-.adminpill{font-size:11px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--gold);color:var(--maroon);border-radius:20px;padding:6px 12px;margin-right:6px;display:none}
+.adminpill{white-space:nowrap;flex:none;font-size:11px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--gold);color:var(--maroon);border-radius:20px;padding:6px 12px;margin-right:6px;display:none}
 .adminpill.show{display:inline-block}
+.demo-fab{position:fixed;left:16px;bottom:16px;z-index:70;display:none;align-items:center;gap:8px;background:var(--maroon-d);color:var(--gold-l);border:1px solid var(--gold);border-radius:30px;padding:10px 16px 10px 12px;font-size:12.5px;letter-spacing:.06em;box-shadow:var(--shadow)}
+.demo-fab.show{display:inline-flex}
+.demo-fab b{background:var(--gold);color:var(--maroon-d);border-radius:12px;padding:2px 8px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+.demo-fab:hover{background:var(--maroon)}
+@media (max-width:560px){.adminpill{display:none!important}}
 .adminpill:hover{background:var(--maroon);color:var(--gold-l)}
 
 /* mobile drawer */
@@ -468,6 +473,7 @@ table.sg th{color:var(--maroon);font-weight:500}
 </div>
 <div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
 <div class="toast" id="toast"></div>
+<a href="#admin" class="demo-fab" id="demoFab"><b>Demo</b><span id="demoFabTxt">Admin login</span></a>
 
 <script src="catalog.js"></script>
 <script>
@@ -486,7 +492,35 @@ const S={
   cart:store.get("cart",[]),wish:store.get("wish",[]),
   shopSort:"featured",heroIdx:0,adminTab:"products",lastOrder:null
 };
-let db=null,assets=null,user=null;
+let db=null,assets=null,user=null,DEMO=false;
+const DEMO_PASS="elora123";
+function demoLoggedIn(){try{return sessionStorage.getItem("elora_demo_admin")==="1"}catch(e){return false}}
+function setDemoLogin(v){try{v?sessionStorage.setItem("elora_demo_admin","1"):sessionStorage.removeItem("elora_demo_admin")}catch(e){}}
+/* Demo store: used when the site runs outside Claude (e.g. Vercel). Saves to this browser only. */
+function makeLocalDb(){
+  const KEY="elora_demo_db";let data=null;
+  try{data=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+  if(!data||!data.products){
+    data={products:{},categories:{},config:{site:{...SEED.settings}}};
+    SEED.categories.forEach(({id,...r})=>data.categories[id]=r);
+    SEED.products.forEach(({id,...r},i)=>data.products[id]={...r,createdAt:Date.now()+i});
+  }
+  const ls=[];
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(data));return true}catch(e){return false}};
+  const emit=()=>ls.forEach(f=>f());
+  const docRef=(coll,id)=>({
+    async set(v){data[coll]=data[coll]||{};const prev=data[coll][id];data[coll][id]=JSON.parse(JSON.stringify(v));
+      if(!save()){if(prev)data[coll][id]=prev;else delete data[coll][id];throw new Error("this browser's storage is full — try fewer or smaller photos")}emit()},
+    async delete(){if(data[coll])delete data[coll][id];save();emit()},
+    onSnapshot(cb){const f=()=>{const d=(data[coll]||{})[id];cb({id,exists:!!d,data:()=>d})};ls.push(f);setTimeout(f,0);return()=>{}}
+  });
+  return {
+    collection:n=>({doc:id=>docRef(n,id),onSnapshot(cb){const f=()=>cb({docs:Object.entries(data[n]||{}).map(([id,d])=>({id,exists:true,data:()=>d}))});ls.push(f);setTimeout(f,0);return()=>{}}}),
+    doc:p=>{const[c,id]=p.split("/");return docRef(c,id)},
+    reset(){try{localStorage.removeItem(KEY)}catch(e){}}
+  };
+}
+const demoAssets={upload:b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res({url:r.result});r.onerror=rej;r.readAsDataURL(b)})};
 const cur=()=>S.settings.currency||"£";
 const money=n=>cur()+(Number(n)||0).toFixed(2);
 const imgOf=p=>(p.images&&p.images[0])||"img/logo.jpg";
@@ -503,7 +537,10 @@ function waNumber(){return String(S.settings.whatsapp||"").replace(/[^0-9]/g,"")
 /* ---------- live data ---------- */
 async function initLive(){
   try{
-    if(!window.claude||!window.claude.use) return;
+    if(!window.claude||!window.claude.use){
+      DEMO=true;db=makeLocalDb();assets=demoAssets;S.isAdmin=demoLoggedIn();
+      renderChrome();startData();return;
+    }
     user=await claude.use("user");
     if(user){try{S.isAdmin=!!(await user.canEdit())}catch(e){}}
     db=await claude.use("db");
@@ -511,6 +548,11 @@ async function initLive(){
     $("#adminPill").classList.toggle("show",S.isAdmin);
     renderChrome();
     if(!db) return;
+    startData();
+  }catch(e){console.warn(e)}
+}
+function startData(){
+  try{
     let got={p:false,c:false,s:false},tmp={p:null,c:null};
     const timer=setTimeout(()=>{if(!S.dbReady&&S.isAdmin)toast("Store data is slow to load…")},10000);
     const apply=()=>{
@@ -536,14 +578,16 @@ function renderChrome(){
   const link=([k,t])=>`<a href="#${esc(k)}" class="${h===k?"on":""}">${esc(t)}</a>`;
   $("#navL").innerHTML=navItems.slice(0,half).map(link).join("");
   $("#navR").innerHTML=navItems.slice(half).map(link).join("");
-  $("#mnav").innerHTML=[["","Home"],["shop","Shop All"],...cats.map(c=>["c-"+c.id,c.name]),["wishlist","Wishlist"],["how-to-order","How to Order"],["policies","Delivery & Returns"]].concat(S.isAdmin?[["admin","Admin Panel"]]:[]).map(([k,t])=>`<a href="#${esc(k)}">${esc(t)}${icon("r")}</a>`).join("");
+  $("#mnav").innerHTML=[["","Home"],["shop","Shop All"],...cats.map(c=>["c-"+c.id,c.name]),["wishlist","Wishlist"],["how-to-order","How to Order"],["policies","Delivery & Returns"]].concat(S.isAdmin||DEMO?[["admin",S.isAdmin?"Admin Panel":"Admin Login (demo)"]]:[]).map(([k,t])=>`<a href="#${esc(k)}">${esc(t)}${icon("r")}</a>`).join("");
   $("#fcats").innerHTML=`<li><a href="#shop">Shop all</a></li>`+cats.map(c=>`<li><a href="#c-${esc(c.id)}">${esc(c.name)}</a></li>`).join("");
   const st=S.settings,wa=waNumber();
   $("#fcontact").innerHTML=(wa?`<li><a href="https://wa.me/${wa}" target="_blank" rel="noopener">${icon("wa")} <span style="vertical-align:5px">+${esc(wa)}</span></a></li>`:"")+
     (st.email?`<li><a href="mailto:${esc(st.email)}">${icon("mail")} <span style="vertical-align:5px">${esc(st.email)}</span></a></li>`:"")+
     (st.location?`<li>${icon("pin")} <span style="vertical-align:5px">${esc(st.location)}</span></li>`:"");
   $("#fsocial").innerHTML=(st.instagram?`<a href="${esc(safeUrl(st.instagram))}" target="_blank" rel="noopener" aria-label="Instagram">${icon("ig")}</a>`:"")+(wa?`<a href="https://wa.me/${wa}" target="_blank" rel="noopener" aria-label="WhatsApp">${icon("wa")}</a>`:"");
-  $("#fadmin").innerHTML=S.isAdmin?`<a href="#admin" style="color:var(--gold-l)">Admin panel</a>`:"Made with love in the UK";
+  $("#fadmin").innerHTML=S.isAdmin?`<a href="#admin" style="color:var(--gold-l)">Admin panel</a>`:DEMO?`<a href="#admin" style="color:var(--gold-l)">Admin login (demo)</a>`:"Made with love in the UK";
+  const pill=$("#adminPill");pill.classList.toggle("show",S.isAdmin);pill.textContent=S.isAdmin?"Admin":"Admin login";
+  $("#demoFab").classList.toggle("show",DEMO);$("#demoFabTxt").textContent=S.isAdmin?"Admin panel":"Admin login";
   $("#yr").textContent=new Date().getFullYear();
   updateCounts();
   startAnn();
@@ -857,6 +901,15 @@ function vNotFound(){return `<div class="wrap"><div class="empty"><h3>We couldn'
 /* ---------- admin ---------- */
 let edit=null; // product/category being edited
 function vAdmin(){
+  if(DEMO&&!S.isAdmin)return `<div class="wrap"><div style="max-width:440px;margin:50px auto 70px">
+    <form class="panel" id="loginForm" novalidate>
+      <div class="kicker" style="color:var(--gold-d)">Demo · testing only</div>
+      <h2 style="font-size:30px;margin:6px 0 8px">Admin login</h2>
+      <div class="banner" style="margin:0 0 18px">This is a <b>demo version for testing and client preview</b>. Demo password: <b>${DEMO_PASS}</b><br>Changes you make are saved only in this browser.</div>
+      <div class="f"><label for="demoPass">Password</label><input id="demoPass" type="password" autocomplete="off"></div>
+      <div class="err-msg" id="loginErr"></div>
+      <button class="btn btn-maroon block" style="margin-top:14px" type="submit">Log in</button>
+    </form></div></div>`;
   if(!S.isAdmin)return `<div class="wrap"><div class="empty"><h3>Admin only</h3><p>This area is for the store owner.</p><a class="btn btn-maroon" href="#">Back to shop</a></div></div>`;
   if(!db)return `<div class="wrap"><div class="empty"><h3>Store data unavailable</h3><p>Open this page from claude.ai while signed in to manage the store.</p></div></div>`;
   if(!S.dbReady)return `<div class="wrap"><div class="empty"><span class="loading"></span> Loading store data…</div></div>`;
@@ -866,8 +919,9 @@ function vAdmin(){
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         ${tab==="products"?`<button class="btn btn-maroon btn-sm" data-act="newprod">+ Add product</button>`:""}
         ${tab==="categories"?`<button class="btn btn-maroon btn-sm" data-act="newcat">+ Add category</button>`:""}
-        <a class="btn btn-line btn-sm" href="#">View store</a></div></div>
-    ${!S.live?`<div class="banner">Your store is showing the starter catalogue. ${S.products.length?"":""}<button class="link" data-act="seed">Load the starter catalogue into your store</button> to start editing it, or add your own categories and products.</div>`:""}
+        <a class="btn btn-line btn-sm" href="#">View store</a>${DEMO?`<button class="btn btn-sm" style="color:var(--muted)" data-act="demologout">Log out</button>`:""}</div></div>
+    ${DEMO?`<div class="banner"><b>Demo mode — for testing and client preview.</b> Everything you add or change is saved only in this browser, so other visitors won't see it. <button class="link" data-act="demoreset">Reset demo data</button></div>`:""}
+    ${!S.live&&!DEMO?`<div class="banner">Your store is showing the starter catalogue. ${S.products.length?"":""}<button class="link" data-act="seed">Load the starter catalogue into your store</button> to start editing it, or add your own categories and products.</div>`:""}
     ${!waNumber()?`<div class="banner">Customers can't place orders until you add your WhatsApp number in <button class="link" data-act="settab" data-tab="settings">Settings</button>.</div>`:""}
     <div class="tabs">${[["products","Products ("+S.products.length+")"],["categories","Categories ("+S.categories.length+")"],["settings","Settings"],["orders","Orders"]].map(([k,t])=>`<button class="${tab===k?"on":""}" data-act="settab" data-tab="${k}">${t}</button>`).join("")}</div>
     ${tab==="products"?adminProducts():tab==="categories"?adminCats():tab==="settings"?adminSettings():adminOrders()}
@@ -979,10 +1033,11 @@ function catForm(c){const isNew=!S.categories.some(x=>x.id===c.id);return `<h2 s
 function readCatForm(){const f=$("#catForm");return {...edit,name:f.elements.name.value.trim(),blurb:f.elements.blurb.value.trim(),order:f.elements.order.value===""?null:Number(f.elements.order.value)}}
 
 async function shrink(file,max=1400){
+  if(DEMO)max=Math.min(max,900);
   try{const bmp=await createImageBitmap(file);const sc=Math.min(1,max/Math.max(bmp.width,bmp.height));
     const c=document.createElement("canvas");c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);
     c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
-    return await new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",.85));}catch(e){return file}
+    return await new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",DEMO?.72:.85));}catch(e){return file}
 }
 async function uploadFiles(files){
   if(!assets){toast("Photo upload isn't available here");return []}
@@ -1091,6 +1146,8 @@ document.addEventListener("click",async e=>{
     // admin
     case "settab":S.adminTab=t.dataset.tab;if(location.hash!=="#admin"){e.preventDefault();location.hash="admin"}else route(true);break;
     case "seed":await seedStore();break;
+    case "demologout":setDemoLogin(false);S.isAdmin=false;renderChrome();location.hash="";toast("Logged out");break;
+    case "demoreset":confirmBox("Reset the demo store? All products, categories and settings go back to the starter catalogue in this browser.",async()=>{db.reset();location.reload()});break;
     case "newprod":edit={id:null,name:"",category:sortedCats()[0]?.id||"",price:"",images:[],colors:[],sizes:["XS","S","M","L","XL","XXL"],sizeLabel:"Size",inStock:true,isNew:true,order:S.products.length+1};openModal(productForm(edit),"wide");break;
     case "editprod":edit=JSON.parse(JSON.stringify(prodById(id)));openModal(productForm(edit),"wide");break;
     case "delprod":{const p=prodById(id);confirmBox(`Delete "${p.name}"? This can't be undone.`,async()=>{try{await db.collection("products").doc(id).delete();toast("Product deleted")}catch(err){toast("Couldn't delete")}});break}
@@ -1115,6 +1172,12 @@ document.addEventListener("change",async e=>{
   else if(a==="heroimg"){const w=t.closest("[data-hero]");w.querySelector('[data-h="image"]').value=urls[0];lab.style.background=`url('${urls[0]}') center 20%/cover`;lab.style.color="#fff";lab.firstChild.textContent="Change photo"}
 });
 document.addEventListener("submit",async e=>{
+  if(e.target.id==="loginForm"){
+    e.preventDefault();
+    if($("#demoPass").value.trim()===DEMO_PASS){setDemoLogin(true);S.isAdmin=true;renderChrome();route(true);toast("Logged in to the demo admin")}
+    else $("#loginErr").textContent="Wrong password — the demo password is shown above.";
+    return;
+  }
   if(e.target.id==="prodForm"){
     e.preventDefault();const p=readProdForm();const err=$("#pErr");
     if(!p.name){err.textContent="Please add a product name";return}
