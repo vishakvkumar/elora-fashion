@@ -1,0 +1,4 @@
+api/*.php
+api/.htaccess
+data
+uploads

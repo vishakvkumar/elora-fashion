@@ -495,7 +495,40 @@ const S={
   cart:store.get("cart",[]),wish:store.get("wish",[]),
   shopSort:"featured",heroIdx:0,adminTab:"products",lastOrder:null
 };
-let db=null,assets=null,user=null,DEMO=false;
+let db=null,assets=null,user=null,DEMO=false,SERVER=false,CSRF=null;
+/* Server mode: the site runs on PHP hosting with api/*.php and data/store.json */
+async function adminApi(action,body){
+  const r=await fetch("api/admin.php?action="+action,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF":CSRF||""},body:JSON.stringify(body||{})});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw new Error(j.error||"Something went wrong ("+r.status+")");
+  return j;
+}
+function makeServerDb(init){
+  const data={products:{},categories:{},config:{site:init.settings||{}}};
+  (init.products||[]).forEach(({id,...r})=>data.products[id]=r);
+  (init.categories||[]).forEach(({id,...r})=>data.categories[id]=r);
+  const ls=[];const emit=()=>ls.forEach(f=>f());
+  const act={products:["save_product","delete_product"],categories:["save_category","delete_category"]};
+  const docRef=(coll,id)=>({
+    async set(v){
+      if(coll==="config"){const j=await adminApi("save_settings",{data:v});data.config.site=j.item;}
+      else{const j=await adminApi(act[coll][0],{id,data:v});const{id:_,...rest}=j.item;data[coll][id]=rest;}
+      emit();
+    },
+    async delete(){await adminApi(act[coll][1],{id});delete data[coll][id];emit()},
+    onSnapshot(cb){const f=()=>{const d=(data[coll]||{})[id];cb({id,exists:!!d,data:()=>d})};ls.push(f);setTimeout(f,0);return()=>{}}
+  });
+  return {collection:n=>({doc:id=>docRef(n,id),onSnapshot(cb){const f=()=>cb({docs:Object.entries(data[n]||{}).map(([id,d])=>({id,exists:true,data:()=>d}))});ls.push(f);setTimeout(f,0);return()=>{}}}),doc:p=>{const[c,id]=p.split("/");return docRef(c,id)}};
+}
+const serverAssets={async upload(b){const fd=new FormData();fd.append("file",b,"photo.jpg");
+  const r=await fetch("api/admin.php?action=upload",{method:"POST",credentials:"same-origin",headers:{"X-CSRF":CSRF||""},body:fd});
+  let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||"Upload failed");return{url:j.url}}};
+async function tryServer(){
+  try{const r=await fetch("api/store.php",{cache:"no-store",credentials:"same-origin"});if(!r.ok)return null;
+    const j=await r.json();return j&&j.ok&&Array.isArray(j.products)?j:null}catch(e){return null}
+}
+const PAY={checkout:"/api/checkout",session:"/api/session"};
+let readyResolve;const READY=new Promise(r=>readyResolve=r);
 const DEMO_PASS="elora123";
 function demoLoggedIn(){try{return sessionStorage.getItem("elora_demo_admin")==="1"}catch(e){return false}}
 function setDemoLogin(v){try{v?sessionStorage.setItem("elora_demo_admin","1"):sessionStorage.removeItem("elora_demo_admin")}catch(e){}}
@@ -541,6 +574,12 @@ function waNumber(){return String(S.settings.whatsapp||"").replace(/[^0-9]/g,"")
 async function initLive(){
   try{
     if(!window.claude||!window.claude.use){
+      const srv=await tryServer();
+      if(srv){
+        SERVER=true;db=makeServerDb(srv);assets=serverAssets;PAY.checkout="api/checkout.php";PAY.session="api/session.php";
+        try{const me=await(await fetch("api/admin.php?action=me",{credentials:"same-origin",cache:"no-store"})).json();S.isAdmin=!!me.admin;CSRF=me.csrf||null;S.serverInfo=me}catch(e){}
+        renderChrome();startData();return;
+      }
       DEMO=true;db=makeLocalDb();assets=demoAssets;S.isAdmin=demoLoggedIn();
       renderChrome();startData();return;
     }
@@ -588,7 +627,7 @@ function renderChrome(){
     (st.email?`<li><a href="mailto:${esc(st.email)}">${icon("mail")} <span style="vertical-align:5px">${esc(st.email)}</span></a></li>`:"")+
     (st.location?`<li>${icon("pin")} <span style="vertical-align:5px">${esc(st.location)}</span></li>`:"");
   $("#fsocial").innerHTML=(st.instagram?`<a href="${esc(safeUrl(st.instagram))}" target="_blank" rel="noopener" aria-label="Instagram">${icon("ig")}</a>`:"")+(wa?`<a href="https://wa.me/${wa}" target="_blank" rel="noopener" aria-label="WhatsApp">${icon("wa")}</a>`:"");
-  $("#fadmin").innerHTML=S.isAdmin?`<a href="#admin" style="color:var(--gold-l)">Admin panel</a>`:DEMO?`<a href="#admin" style="color:var(--gold-l)">Admin login (demo)</a>`:"Made with love in the UK";
+  $("#fadmin").innerHTML=S.isAdmin?`<a href="#admin" style="color:var(--gold-l)">Admin panel</a>`:DEMO?`<a href="#admin" style="color:var(--gold-l)">Admin login (demo)</a>`:SERVER?`<a href="#admin">Admin login</a>`:"Made with love in the UK";
   const pill=$("#adminPill");pill.classList.toggle("show",S.isAdmin);pill.textContent=S.isAdmin?"Admin":"Admin login";
   $("#demoFab").classList.toggle("show",DEMO);$("#demoFabTxt").textContent=S.isAdmin?"Admin panel":"Admin login";
   $("#yr").textContent=new Date().getFullYear();
@@ -850,7 +889,8 @@ async function startPayment(ref,d){
   const btn=$("#payBtn"),err=$("#payErr");err.textContent="";
   const old=btn.innerHTML;btn.innerHTML=`<span class="loading"></span> Taking you to secure payment…`;btn.classList.add("disabled");
   try{
-    const r=await fetch("/api/checkout",{method:"POST",headers:{"Content-Type":"application/json"},
+    await READY;
+    const r=await fetch(PAY.checkout,{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ref,customer:d,items:S.cart.map(i=>({id:i.id,name:prodById(i.id)?.name,size:i.size,color:i.color,qty:i.qty}))})});
     let j={};try{j=await r.json()}catch(x){}
     if(!r.ok||!j.url)throw new Error(j.error||(r.status===404?"Card payments aren't available on this version of the site.":"We couldn't start the payment. Please try again."));
@@ -868,7 +908,7 @@ function vOrderSuccess(){
   const st=paidState[id];
   if(!st){
     paidState[id]={loading:true};
-    fetch("/api/session?id="+encodeURIComponent(id)).then(r=>r.json()).then(j=>{
+    READY.then(()=>fetch(PAY.session+"?id="+encodeURIComponent(id))).then(r=>r.json()).then(j=>{
       paidState[id]=j;
       if(j.paid){S.cart=[];store.set("cart",S.cart);store.set("pending",null);updateCounts()}
       if(location.hash==="#order-success")route(true);
@@ -924,6 +964,15 @@ function vNotFound(){return `<div class="wrap"><div class="empty"><h3>We couldn'
 /* ---------- admin ---------- */
 let edit=null; // product/category being edited
 function vAdmin(){
+  if(SERVER&&!S.isAdmin)return `<div class="wrap"><div style="max-width:440px;margin:70px auto 70px">
+    <form class="panel" id="loginForm" novalidate>
+      <div class="kicker" style="color:var(--gold-d)">Elora</div>
+      <h2 style="font-size:30px;margin:6px 0 16px">Admin login</h2>
+      ${S.serverInfo&&S.serverInfo.configured===false?`<div class="banner" style="margin:0 0 16px">The admin password hasn't been set yet. Add it to <b>api/config.php</b> on the server.</div>`:""}
+      <div class="f"><label for="demoPass">Password</label><input id="demoPass" type="password" autocomplete="current-password"></div>
+      <div class="err-msg" id="loginErr"></div>
+      <button class="btn btn-maroon block" style="margin-top:14px" type="submit">Log in</button>
+    </form></div></div>`;
   if(DEMO&&!S.isAdmin)return `<div class="wrap"><div style="max-width:440px;margin:50px auto 70px">
     <form class="panel" id="loginForm" novalidate>
       <div class="kicker" style="color:var(--gold-d)">Demo · testing only</div>
@@ -942,9 +991,10 @@ function vAdmin(){
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         ${tab==="products"?`<button class="btn btn-maroon btn-sm" data-act="newprod">+ Add product</button>`:""}
         ${tab==="categories"?`<button class="btn btn-maroon btn-sm" data-act="newcat">+ Add category</button>`:""}
-        <a class="btn btn-line btn-sm" href="#">View store</a>${DEMO?`<button class="btn btn-sm" style="color:var(--muted)" data-act="demologout">Log out</button>`:""}</div></div>
+        <a class="btn btn-line btn-sm" href="#">View store</a>${DEMO||SERVER?`<button class="btn btn-sm" style="color:var(--muted)" data-act="demologout">Log out</button>`:""}</div></div>
     ${DEMO?`<div class="banner"><b>Demo mode — for testing and client preview.</b> Everything you add or change is saved only in this browser, so other visitors won't see it. <button class="link" data-act="demoreset">Reset demo data</button></div>`:""}
-    ${!S.live&&!DEMO?`<div class="banner">Your store is showing the starter catalogue. ${S.products.length?"":""}<button class="link" data-act="seed">Load the starter catalogue into your store</button> to start editing it, or add your own categories and products.</div>`:""}
+    ${SERVER&&S.serverInfo&&S.serverInfo.payments===false?`<div class="banner">Card payments are off until the Stripe secret key is added to <b>api/config.php</b> on the server.</div>`:""}
+    ${!S.live&&!DEMO&&!SERVER?`<div class="banner">Your store is showing the starter catalogue. ${S.products.length?"":""}<button class="link" data-act="seed">Load the starter catalogue into your store</button> to start editing it, or add your own categories and products.</div>`:""}
     <div class="tabs">${[["products","Products ("+S.products.length+")"],["categories","Categories ("+S.categories.length+")"],["settings","Settings"],["orders","Orders"]].map(([k,t])=>`<button class="${tab===k?"on":""}" data-act="settab" data-tab="${k}">${t}</button>`).join("")}</div>
     ${tab==="products"?adminProducts():tab==="categories"?adminCats():tab==="settings"?adminSettings():adminOrders()}
   </div>`;
@@ -993,7 +1043,9 @@ function adminSettings(){
     <button class="btn btn-maroon" type="submit" style="margin-top:10px">Save settings</button>
   </form>`;
 }
-function adminOrders(){return `<div class="panel" style="max-width:760px">
+function adminOrders(){
+  if(SERVER)return serverOrders();
+  return `<div class="panel" style="max-width:760px">
   <h2>Where do orders go?</h2>
   <p><b>Card orders</b> are paid through Stripe. Each one appears in your <a class="link" href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Stripe Dashboard → Payments</a> with the order reference (e.g. ELR-AB12CD), items with size and colour, the customer's name, phone, email and delivery address. Stripe can also email you for every successful payment (Dashboard → Settings → Email notifications).</p>
   <p class="note">While Stripe is in test mode, use card 4242 4242 4242 4242 with any future date and any CVC — no real money moves.</p></div>`}
@@ -1033,6 +1085,21 @@ function productForm(p){
 function colorRow(c,i,imgs){return `<div class="crow" data-ci="${i}"><input placeholder="Colour name" data-c="name" value="${esc(c.name||"")}"><input type="color" data-c="hex" value="${esc(/^#[0-9a-f]{6}$/i.test(c.hex||"")?c.hex:"#5b0e2d")}">
   <select data-c="image"><option value="">No photo change</option>${imgs.map((u,j)=>`<option value="${esc(u)}" ${c.image===u?"selected":""}>Photo ${j+1}</option>`).join("")}</select>
   <button type="button" class="ib" data-act="delcolor" data-i="${i}" aria-label="Remove colour">${icon("x")}</button></div>`}
+function serverOrders(){
+  if(S.orders===undefined||S.orders===null){
+    if(!S.ordersLoading){S.ordersLoading=true;S.ordersErr=null;
+      adminApi("orders").then(j=>{S.orders=j.orders}).catch(x=>{S.orders=[];S.ordersErr=x.message}).finally(()=>{S.ordersLoading=false;if(location.hash==="#admin"&&S.adminTab==="orders")route(true)});}
+    return `<div class="empty"><span class="loading"></span> Loading orders from Stripe…</div>`;
+  }
+  const head=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px"><p class="note" style="margin:0">Latest 50 paid orders from Stripe. Full details are also in your <a class="link" href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Stripe Dashboard</a>.</p><button class="btn btn-line btn-sm" data-act="loadorders">Refresh</button></div>`;
+  if(S.ordersErr)return head+`<div class="banner">${esc(S.ordersErr)}</div>`;
+  if(!S.orders.length)return head+`<div class="empty"><h3>No orders yet</h3><p>Paid orders will appear here.</p></div>`;
+  return head+`<div class="alist">${S.orders.map(o=>{const full=o.refunded>=o.total-0.001;const st=full?`<span class="pill off">Refunded</span>`:o.refunded?`<span class="pill">Part refunded ${money(o.refunded)}</span>`:`<span class="pill">Paid</span>`;
+    return `<div class="panel" style="padding:16px 18px">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><b>${esc(o.ref||"Order")}</b> ${st}${o.testMode?`<span class="pill off">Test</span>`:""}<div class="note">${new Date(o.created*1000).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})}</div></div>
+      <div style="text-align:right"><div class="price">${money(o.total)}</div>${full?"":`<button class="btn btn-line btn-sm" style="margin-top:6px" data-act="refund" data-id="${esc(o.id)}">Refund</button>`}</div></div>
+      <div style="font-size:14px;margin-top:10px;line-height:1.6">${esc(o.items)}<br><span class="note">${esc(o.name)} · ${esc(o.email)} · ${esc(o.phone)}<br>${esc(o.address)}${o.notes?`<br>Note: ${esc(o.notes)}`:""}</span></div></div>`}).join("")}</div>`;
+}
 function readColors(){return [...document.querySelectorAll("#pColors .crow")].map(r=>({name:r.querySelector('[data-c="name"]').value.trim(),hex:r.querySelector('[data-c="hex"]').value,image:r.querySelector('[data-c="image"]').value})).filter(c=>c.name)}
 function readProdForm(){
   const f=$("#prodForm");const g=n=>f.elements[n];
@@ -1166,7 +1233,19 @@ document.addEventListener("click",async e=>{
     // admin
     case "settab":S.adminTab=t.dataset.tab;if(location.hash!=="#admin"){e.preventDefault();location.hash="admin"}else route(true);break;
     case "seed":await seedStore();break;
-    case "demologout":setDemoLogin(false);S.isAdmin=false;renderChrome();location.hash="";toast("Logged out");break;
+    case "demologout":if(SERVER){try{await adminApi("logout")}catch(x){}CSRF=null}else setDemoLogin(false);S.isAdmin=false;renderChrome();location.hash="";toast("Logged out");break;
+    case "loadorders":S.orders=null;route(true);break;
+    case "refund":{const o=(S.orders||[]).find(x=>x.id===id);if(!o)break;const left=Math.round((o.total-o.refunded)*100)/100;
+      openModal(`<h2 style="font-size:24px;margin-bottom:6px">Refund order ${esc(o.ref)}</h2><p class="note" style="margin:0 0 14px">${esc(o.name)} · paid ${money(o.total)}${o.refunded?` · already refunded ${money(o.refunded)}`:""}</p>
+        <div class="f"><label for="refAmt">Amount to refund (${cur()})</label><input id="refAmt" type="number" step="0.01" min="0.01" max="${left}" value="${left.toFixed(2)}"></div>
+        <p class="note">The money goes back to the customer's card in 5–10 working days. Stripe keeps its original fee.</p>
+        <div class="err-msg" id="refErr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px"><button class="btn btn-line btn-sm" data-act="closemodal">Cancel</button><button class="btn btn-maroon btn-sm" id="refGo">Refund</button></div>`);
+      $("#refGo").onclick=async()=>{const amt=Number($("#refAmt").value);if(!(amt>0)||amt>left+0.001){$("#refErr").textContent="Enter an amount between "+money(0.01)+" and "+money(left)+".";return}
+        $("#refGo").innerHTML=`<span class="loading"></span>`;
+        try{await adminApi("refund",{paymentIntent:o.paymentIntent,amount:Math.abs(amt-left)<0.001?null:amt});closeModal();toast("Refund of "+money(amt)+" sent");S.orders=null;route(true)}
+        catch(x){$("#refErr").textContent=x.message;$("#refGo").textContent="Refund"}};
+      break}
     case "demoreset":confirmBox("Reset the demo store? All products, categories and settings go back to the starter catalogue in this browser.",async()=>{db.reset();location.reload()});break;
     case "newprod":edit={id:null,name:"",category:sortedCats()[0]?.id||"",price:"",images:[],colors:[],sizes:["XS","S","M","L","XL","XXL"],sizeLabel:"Size",inStock:true,isNew:true,order:S.products.length+1};openModal(productForm(edit),"wide");break;
     case "editprod":edit=JSON.parse(JSON.stringify(prodById(id)));openModal(productForm(edit),"wide");break;
@@ -1194,6 +1273,11 @@ document.addEventListener("change",async e=>{
 document.addEventListener("submit",async e=>{
   if(e.target.id==="loginForm"){
     e.preventDefault();
+    if(SERVER){
+      try{const j=await adminApi("login",{password:$("#demoPass").value});CSRF=j.csrf;S.isAdmin=true;renderChrome();route(true);toast("Logged in")}
+      catch(x){$("#loginErr").textContent=x.message}
+      return;
+    }
     if($("#demoPass").value.trim()===DEMO_PASS){setDemoLogin(true);S.isAdmin=true;renderChrome();route(true);toast("Logged in to the demo admin")}
     else $("#loginErr").textContent="Wrong password — the demo password is shown above.";
     return;
@@ -1225,7 +1309,7 @@ document.addEventListener("touchend",e=>{if(tx==null)return;const dx=e.changedTo
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAll();closeModal()}});
 window.addEventListener("hashchange",()=>{closeAll();closeModal();route()});
 
-renderChrome();route();initLive();
+renderChrome();route();initLive().finally(()=>readyResolve());
 </script>
 </body>
 </html>

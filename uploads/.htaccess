@@ -1,0 +1,5 @@
+# Photos only: never run scripts from this folder
+<FilesMatch "\.(php|phtml|php[0-9]|phar|pl|py|cgi|sh|html?|js|svg)$">
+  Require all denied
+</FilesMatch>
+Options -Indexes

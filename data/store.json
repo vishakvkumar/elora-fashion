@@ -1,0 +1,543 @@
+{
+  "settings": {
+    "whatsapp": "",
+    "currency": "£",
+    "freeOver": 50,
+    "deliveryFee": 3.99,
+    "email": "info@elorafashion.co.uk",
+    "instagram": "",
+    "location": "United Kingdom",
+    "announcements": [
+      "Free UK delivery on orders over £50",
+      "Order easily on WhatsApp",
+      "New festive edit just landed"
+    ],
+    "hero": [
+      {
+        "image": "img/p7.jpg",
+        "kicker": "Tradition meets modern elegance",
+        "title": "Timeless Fashion",
+        "sub": "For all generations",
+        "link": "c-anarkali-suits"
+      },
+      {
+        "image": "img/p1.jpg",
+        "kicker": "The Organza Edit",
+        "title": "Soft, Sheer & Hand-Embellished",
+        "sub": "Sarees with velvet blouses",
+        "link": "c-sarees"
+      },
+      {
+        "image": "img/p3.jpg",
+        "kicker": "Festive Velvet",
+        "title": "Made for Celebrations",
+        "sub": "Anarkalis that twirl",
+        "link": "c-anarkali-suits"
+      }
+    ]
+  },
+  "categories": [
+    {
+      "id": "sarees",
+      "name": "Sarees",
+      "image": "img/p2.jpg",
+      "order": 1,
+      "blurb": "Organza and tissue sarees with ready-stitched blouses"
+    },
+    {
+      "id": "anarkali-suits",
+      "name": "Anarkali Suits",
+      "image": "img/p6.jpg",
+      "order": 2,
+      "blurb": "Flowing floor-length anarkalis with dupattas"
+    },
+    {
+      "id": "dresses",
+      "name": "Dresses & Kurtis",
+      "image": "img/p8.jpg",
+      "order": 3,
+      "blurb": "Easy everyday cotton and printed styles"
+    },
+    {
+      "id": "blouses",
+      "name": "Ready-made Blouses",
+      "image": "img/p15.jpg",
+      "order": 4,
+      "blurb": "Stitched blouses to pair with any saree"
+    }
+  ],
+  "products": [
+    {
+      "id": "blush-organza-saree",
+      "name": "Blush Organza Saree with Velvet Blouse",
+      "category": "sarees",
+      "price": 54.99,
+      "compareAt": 64.99,
+      "images": [
+        "img/p1.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Blush Pink",
+          "hex": "#f2c2b8",
+          "image": "img/p1.jpg"
+        }
+      ],
+      "sizes": [
+        "32",
+        "34",
+        "36",
+        "38",
+        "40",
+        "42"
+      ],
+      "sizeLabel": "Blouse size",
+      "description": "A feather-light blush organza saree scattered with hand-embroidered black and gold floral sprays and finished with a beaded scalloped border. Paired with a rich chocolate velvet blouse with pearl detailing and embroidered sleeves.",
+      "details": "Saree: organza, 5.5 m\nBlouse: velvet, ready-stitched\nHand embroidery with bead and pearl work",
+      "care": "Dry clean only. Store folded in a muslin cloth.",
+      "featured": true,
+      "isNew": true,
+      "inStock": true,
+      "order": 1
+    },
+    {
+      "id": "rose-organza-saree",
+      "name": "Rose Organza Saree with Magenta Velvet Blouse",
+      "category": "sarees",
+      "price": 54.99,
+      "compareAt": null,
+      "images": [
+        "img/p2.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Rose Pink",
+          "hex": "#e8a9c0",
+          "image": "img/p2.jpg"
+        }
+      ],
+      "sizes": [
+        "32",
+        "34",
+        "36",
+        "38",
+        "40",
+        "42"
+      ],
+      "sizeLabel": "Blouse size",
+      "description": "Shimmering rose-pink tissue organza with raised magenta floral motifs and pearl clusters, edged with a fine gold border. Comes with a magenta velvet blouse with embroidered sleeves.",
+      "details": "Saree: tissue organza, 5.5 m\nBlouse: velvet, ready-stitched\nPearl and thread embroidery",
+      "care": "Dry clean only.",
+      "featured": true,
+      "isNew": true,
+      "inStock": true,
+      "order": 2
+    },
+    {
+      "id": "silver-grey-organza-saree",
+      "name": "Silver Grey Organza Saree with Black Velvet Blouse",
+      "category": "sarees",
+      "price": 54.99,
+      "compareAt": null,
+      "images": [
+        "img/p9.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Silver Grey",
+          "hex": "#a9a9ad",
+          "image": "img/p9.jpg"
+        }
+      ],
+      "sizes": [
+        "32",
+        "34",
+        "36",
+        "38",
+        "40",
+        "42"
+      ],
+      "sizeLabel": "Blouse size",
+      "description": "A modern silver-grey organza saree with navy floral appliqué and gold bead sprays, paired with a black velvet blouse with gold embroidered sleeves and star details.",
+      "details": "Saree: organza, 5.5 m\nBlouse: velvet, ready-stitched",
+      "care": "Dry clean only.",
+      "featured": false,
+      "isNew": true,
+      "inStock": true,
+      "order": 3
+    },
+    {
+      "id": "maroon-velvet-anarkali",
+      "name": "Maroon Velvet Anarkali with Net Dupatta",
+      "category": "anarkali-suits",
+      "price": 69.99,
+      "compareAt": 79.99,
+      "images": [
+        "img/p3.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Maroon",
+          "hex": "#7a1020",
+          "image": "img/p3.jpg"
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "sizeLabel": "Size",
+      "description": "A regal floor-length velvet anarkali with a deep flare, stone-embellished V neckline and cuffs. Finished with a soft net dupatta edged in a matching stone lace border.",
+      "details": "Fabric: velvet with net dupatta\nLength: floor length\nIncludes: anarkali and dupatta",
+      "care": "Dry clean only.",
+      "featured": true,
+      "isNew": false,
+      "inStock": true,
+      "order": 4
+    },
+    {
+      "id": "black-gold-butti-anarkali",
+      "name": "Black Georgette Anarkali with Gold Butti",
+      "category": "anarkali-suits",
+      "price": 49.99,
+      "compareAt": null,
+      "images": [
+        "img/p4.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Black",
+          "hex": "#141414",
+          "image": "img/p4.jpg"
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "sizeLabel": "Size",
+      "description": "An elegant black georgette anarkali with a sweetheart neckline, gold-embroidered yoke and delicate gold butti throughout. Comes with a matching chiffon dupatta.",
+      "details": "Fabric: georgette\nIncludes: anarkali and dupatta",
+      "care": "Gentle hand wash or dry clean.",
+      "featured": true,
+      "isNew": true,
+      "inStock": true,
+      "order": 5
+    },
+    {
+      "id": "black-brocade-sleeve-anarkali",
+      "name": "Black Anarkali with Maroon Brocade Sleeves",
+      "category": "anarkali-suits",
+      "price": 52.99,
+      "compareAt": null,
+      "images": [
+        "img/p5.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Black & Maroon",
+          "hex": "#2a0a10",
+          "image": "img/p5.jpg"
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "sizeLabel": "Size",
+      "description": "A classic black anarkali with a sweetheart neckline and statement maroon-and-gold brocade sleeves. The sheer black dupatta carries a matching brocade border.",
+      "details": "Fabric: georgette with brocade\nIncludes: anarkali and dupatta",
+      "care": "Dry clean only.",
+      "featured": false,
+      "isNew": false,
+      "inStock": true,
+      "order": 6
+    },
+    {
+      "id": "red-brocade-yoke-anarkali",
+      "name": "Red Anarkali with Brocade Yoke",
+      "category": "anarkali-suits",
+      "price": 49.99,
+      "compareAt": null,
+      "images": [
+        "img/p6.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Red",
+          "hex": "#b0121e",
+          "image": "img/p6.jpg"
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "sizeLabel": "Size",
+      "description": "A festive red anarkali with a woven gold brocade yoke and scattered gold butti, finished with a flowing matching dupatta.",
+      "details": "Fabric: georgette with brocade yoke\nIncludes: anarkali and dupatta",
+      "care": "Gentle hand wash or dry clean.",
+      "featured": true,
+      "isNew": false,
+      "inStock": true,
+      "order": 7
+    },
+    {
+      "id": "wine-embroidered-anarkali",
+      "name": "Wine Anarkali with Gold Embroidered Yoke",
+      "category": "anarkali-suits",
+      "price": 49.99,
+      "compareAt": null,
+      "images": [
+        "img/p7.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Wine",
+          "hex": "#5a1035",
+          "image": "img/p7.jpg"
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "sizeLabel": "Size",
+      "description": "Our signature wine anarkali with intricate gold threadwork on the yoke and gold butti on the flare. Comes with a matching dupatta.",
+      "details": "Fabric: georgette\nIncludes: anarkali and dupatta",
+      "care": "Gentle hand wash or dry clean.",
+      "featured": true,
+      "isNew": true,
+      "inStock": true,
+      "order": 8
+    },
+    {
+      "id": "rose-shimmer-anarkali-set",
+      "name": "Rose Shimmer Anarkali Set with Pants",
+      "category": "anarkali-suits",
+      "price": 59.99,
+      "compareAt": null,
+      "images": [
+        "img/p13.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Rose",
+          "hex": "#c9647e",
+          "image": "img/p13.jpg"
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "sizeLabel": "Size",
+      "description": "A square-neck rose anarkali in textured shimmer fabric with matching straight pants and a sheer dupatta finished with pearl drop tassels.",
+      "details": "Includes: anarkali, pants and dupatta",
+      "care": "Dry clean only.",
+      "featured": false,
+      "isNew": true,
+      "inStock": true,
+      "order": 9
+    },
+    {
+      "id": "daisy-cotton-maxi",
+      "name": "Daisy Print Cotton Maxi Dress",
+      "category": "dresses",
+      "price": 29.99,
+      "compareAt": 34.99,
+      "images": [
+        "img/p8.jpg",
+        "img/p11.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Lime",
+          "hex": "#cfe15a",
+          "image": "img/p8.jpg"
+        },
+        {
+          "name": "Pink",
+          "hex": "#ef8fb0",
+          "image": "img/p11.jpg"
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "sizeLabel": "Size",
+      "description": "A breezy cotton maxi with a bold daisy print, V neckline, gathered waist and fluted three-quarter sleeves. Light enough for summer days and easy to dress up.",
+      "details": "Fabric: 100% cotton\nFit: relaxed, gathered waist",
+      "care": "Machine wash cold, wash colours separately.",
+      "featured": true,
+      "isNew": true,
+      "inStock": true,
+      "order": 10
+    },
+    {
+      "id": "red-satin-pleated-blouse",
+      "name": "Red Satin Blouse with Pleated Hem",
+      "category": "blouses",
+      "price": 22.99,
+      "compareAt": null,
+      "images": [
+        "img/p12.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Red",
+          "hex": "#b3121c",
+          "image": "img/p12.jpg"
+        }
+      ],
+      "sizes": [
+        "32",
+        "34",
+        "36",
+        "38",
+        "40",
+        "42",
+        "44"
+      ],
+      "sizeLabel": "Blouse size",
+      "description": "A sleeveless satin blouse with a sweetheart front, pleated hem band and tie-up back with fabric tassels.",
+      "details": "Fabric: satin silk\nPadded: yes\nClosure: front hooks, back tie",
+      "care": "Dry clean only.",
+      "featured": false,
+      "isNew": true,
+      "inStock": true,
+      "order": 11
+    },
+    {
+      "id": "mustard-raw-silk-blouse",
+      "name": "Mustard Raw Silk Sleeveless Blouse",
+      "category": "blouses",
+      "price": 19.99,
+      "compareAt": null,
+      "images": [
+        "img/p14.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Mustard",
+          "hex": "#e3a21a",
+          "image": "img/p14.jpg"
+        }
+      ],
+      "sizes": [
+        "32",
+        "34",
+        "36",
+        "38",
+        "40",
+        "42",
+        "44"
+      ],
+      "sizeLabel": "Blouse size",
+      "description": "A versatile mustard raw silk blouse with a deep scoop neck. Pairs beautifully with contrast sarees.",
+      "details": "Fabric: raw silk\nPadded: yes",
+      "care": "Dry clean only.",
+      "featured": false,
+      "isNew": false,
+      "inStock": true,
+      "order": 12
+    },
+    {
+      "id": "emerald-velvet-blouse",
+      "name": "Emerald Velvet Embroidered Blouse",
+      "category": "blouses",
+      "price": 27.99,
+      "compareAt": null,
+      "images": [
+        "img/p15.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Emerald",
+          "hex": "#123a2a",
+          "image": "img/p15.jpg"
+        }
+      ],
+      "sizes": [
+        "32",
+        "34",
+        "36",
+        "38",
+        "40",
+        "42",
+        "44"
+      ],
+      "sizeLabel": "Blouse size",
+      "description": "Bottle-green velvet with an ivory lattice of embroidered florets, a pearl-bead hem and a tie-up back with tassels.",
+      "details": "Fabric: velvet\nSleeves: short\nClosure: front hooks, back tie",
+      "care": "Dry clean only.",
+      "featured": true,
+      "isNew": true,
+      "inStock": true,
+      "order": 13
+    },
+    {
+      "id": "magenta-tissue-blouse",
+      "name": "Magenta Tissue Sleeveless Blouse",
+      "category": "blouses",
+      "price": 21.99,
+      "compareAt": null,
+      "images": [
+        "img/p16.jpg"
+      ],
+      "colors": [
+        {
+          "name": "Magenta",
+          "hex": "#a8237f",
+          "image": "img/p16.jpg"
+        }
+      ],
+      "sizes": [
+        "32",
+        "34",
+        "36",
+        "38",
+        "40",
+        "42",
+        "44"
+      ],
+      "sizeLabel": "Blouse size",
+      "description": "A shimmering magenta tissue blouse with a scoop neck, made to lift plain and pastel sarees.",
+      "details": "Fabric: tissue\nPadded: yes",
+      "care": "Dry clean only.",
+      "featured": false,
+      "isNew": false,
+      "inStock": true,
+      "order": 14
+    }
+  ]
+}

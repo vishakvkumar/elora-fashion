@@ -30,15 +30,42 @@ A shopping website for **Elora**, a UK ethnic-wear boutique (sarees, anarkali su
 
 Prices and delivery charges are always read on the server from `catalog.js`, so customers can't change them in the browser. Products added through the demo admin panel exist only in that browser, so they can't be paid for until they're added to `catalog.js`.
 
-## Running it
-It's a static site with no build step. Open `index.html` through any web server, for example:
+## Hosting on the client's own domain (PHP hosting) — recommended
+This is the version to go live with. It needs an ordinary web hosting plan with:
+- **PHP 8.0 or newer** with the **curl** extension (standard on almost every UK host)
+- **Apache or LiteSpeed** (so the included `.htaccess` files protect private folders)
+- **Free SSL/HTTPS** (Let's Encrypt), a file manager or FTP
 
-```bash
-python3 -m http.server 8000
-# then visit http://localhost:8000
-```
+### Install
+1. Upload everything in this repo to the website folder (usually `public_html`).
+2. In `api/`, copy `config.sample.php` to `config.php` and fill in:
+   - `stripe_secret_key`: from Stripe → Developers → API keys (`sk_test_…` while testing)
+   - `admin_password`: a long password for the admin panel
+3. Make `data/` and `uploads/` writable by the website (permissions 755, or 775 if saving fails).
+4. Turn on HTTPS for the domain.
+5. Open `https://yourdomain/#admin` and log in. Products, categories, photos and settings now save on the server for every visitor.
 
-It can also be hosted on GitHub Pages (Settings → Pages → deploy from the `main` branch).
+### Test a payment
+Use card `4242 4242 4242 4242`, any future date and any CVC. The order appears in Admin → Orders and in the Stripe Dashboard.
 
-### About the admin panel
-The live version runs as a Claude artifact. There, the admin panel saves products, categories, photos and settings in the artifact's database. Hosted anywhere else (GitHub Pages, Netlify, etc.), the site shows the catalogue in `catalog.js` and the admin panel is not available. To change products or settings on a static host, edit `catalog.js`, including setting `whatsapp` to the store's number with country code, e.g. `447700900123`.
+### Refunds
+Admin → **Orders** lists the latest 50 paid orders from Stripe, with a **Refund** button for a full or part refund. Refunds can also be made in the Stripe Dashboard. The money returns to the customer's card in 5–10 working days; Stripe keeps its original fee.
+
+### Go live
+Finish Stripe's business verification, then replace the test key in `api/config.php` with the live key (`sk_live_…`).
+
+### Keep the client's data safe
+`data/store.json` (products, categories, settings) and `uploads/` (photos) are the live shop data. **Back them up, and never overwrite them when uploading a new version of the site.** `api/config.php` holds secrets: never share it or commit it.
+
+| Server file | Purpose |
+|---|---|
+| `api/store.php` | Public catalogue |
+| `api/admin.php` | Admin login, saving, photo uploads, orders and refunds |
+| `api/checkout.php` | Creates the Stripe Checkout session, using server-side prices |
+| `api/session.php` | Confirms a payment for the thank-you page |
+| `api/config.sample.php` | Template for the private `config.php` |
+| `data/store.json` | The shop's data |
+| `uploads/` | Photos added through the admin panel |
+
+## Preview on GitHub Pages / Vercel
+Without PHP, the site runs as a demo: the admin panel (password `elora123`) saves only in the visitor's browser. On Vercel, `api/checkout.js` and `api/session.js` provide Stripe checkout if `STRIPE_SECRET_KEY` is set in the project's environment variables.
