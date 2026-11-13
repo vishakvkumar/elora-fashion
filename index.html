@@ -264,9 +264,12 @@ section.s{padding:64px 0}
 .f.bad .em{display:block}
 .sumi{display:grid;grid-template-columns:58px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line);font-size:14px;align-items:center}
 .sumi img{width:58px;height:74px;object-fit:cover;border-radius:6px;object-position:center 15%}
+.pay-note{display:flex;gap:12px;background:#f6f0fb;border:1px solid #e3d6ef;border-radius:10px;padding:14px 16px;font-size:14px;color:#3d2a52;margin:18px 0}
+.pay-note svg{flex:none;width:22px;height:22px;color:var(--maroon)}
+.paycards{text-align:center;font-size:12.5px;color:var(--muted);margin-top:8px;letter-spacing:.04em}
 .wa-note{display:flex;gap:12px;background:#eef7f0;border:1px solid #cfe6d6;border-radius:10px;padding:14px 16px;font-size:14px;color:#24502f;margin:18px 0}
 .wa-note svg{flex:none;width:22px;height:22px;color:#1f8f4e}
-.done{max-width:640px;margin:40px auto 70px;text-align:center}
+.done{max-width:640px;margin:70px auto 70px;text-align:center}
 .done .tick{width:74px;height:74px;border-radius:50%;background:var(--maroon);color:var(--gold-l);display:grid;place-items:center;margin:0 auto 18px}
 .msgbox{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;font-size:13.5px;white-space:pre-wrap;max-height:300px;overflow:auto;margin:16px 0}
 
@@ -663,7 +666,7 @@ function vHome(){
   </div></section>`:""}
 
   <section class="s how" id="how"><div class="wrap">
-    <div class="sh"><h2>Ordering is Simple</h2><p>No account needed — we confirm every order personally on WhatsApp</p></div>
+    <div class="sh"><h2>Ordering is Simple</h2><p>No account needed — pay securely by card in a few taps</p></div>
     ${stepsHtml()}
   </div></section>
 
@@ -677,14 +680,14 @@ function vHome(){
 function stepsHtml(){return `<div class="steps">
   <div class="step"><div class="n">1</div><h3>Choose your style</h3><p>Pick your colour and size, then add it to your bag.</p></div>
   <div class="step"><div class="n">2</div><h3>Add your address</h3><p>Fill in your name, phone number and delivery address at checkout.</p></div>
-  <div class="step"><div class="n">3</div><h3>Send on WhatsApp</h3><p>Your order is sent to us on WhatsApp and we reply with payment details.</p></div>
-  <div class="step"><div class="n">4</div><h3>Pay & receive</h3><p>Once payment is confirmed, we pack and dispatch your order.</p></div>
+  <div class="step"><div class="n">3</div><h3>Pay securely</h3><p>Pay by card, Apple Pay or Google Pay on Stripe's secure checkout.</p></div>
+  <div class="step"><div class="n">4</div><h3>We dispatch</h3><p>You get an email receipt, and we pack and send your order.</p></div>
 </div>`}
 function trustHtml(){const st=S.settings;return `<div class="trust">
   <div>${icon("truck")}<div><b>Free UK delivery</b><span>On orders over ${money(st.freeOver)}</span></div></div>
-  <div>${icon("wa")}<div><b>Order on WhatsApp</b><span>Personal, quick confirmation</span></div></div>
+  <div>${icon("shield")}<div><b>Secure checkout</b><span>Card, Apple Pay & Google Pay</span></div></div>
   <div>${icon("return")}<div><b>Easy exchanges</b><span>See our returns policy</span></div></div>
-  <div>${icon("shield")}<div><b>Quality checked</b><span>Every piece inspected</span></div></div>
+  <div>${icon("star")}<div><b>Quality checked</b><span>Every piece inspected</span></div></div>
 </div>`}
 
 function vShop(catId,mode){
@@ -742,7 +745,7 @@ function vProduct(id){
         <button class="btn btn-gold block" style="margin-top:12px" data-act="buynow" data-id="${esc(p.id)}">Buy now</button>`}
         <div class="perks">
           <div>${icon("truck")} Free UK delivery on orders over ${money(S.settings.freeOver)}</div>
-          <div>${icon("wa")} Order confirmed personally on WhatsApp</div>
+          <div>${icon("shield")} Secure card payment — Apple Pay & Google Pay accepted</div>
           <div>${icon("return")} Easy exchanges on unworn items</div>
         </div>
         <div class="acc">
@@ -779,14 +782,14 @@ function renderCart(){
     <div class="tot"><span>Delivery</span><span>${t.ship?money(t.ship):"Free"}</span></div>
     <div class="tot big"><span>Total</span><span>${money(t.total)}</span></div>
     <a class="btn btn-maroon block" style="margin-top:14px" href="#checkout" data-act="closeall">Checkout</a>
-    <p class="note" style="text-align:center;margin:10px 0 0">Payment details are sent to you on WhatsApp</p>`;
+    <p class="note" style="text-align:center;margin:10px 0 0">Secure card payment · Apple Pay · Google Pay</p>`;
 }
 
 const coData=store.get("addr",{country:"United Kingdom"});
 function vCheckout(){
   validCart();
   if(!S.cart.length)return `<div class="wrap"><div class="empty"><h3>Your bag is empty</h3><p>Add something to your bag to check out.</p><a class="btn btn-maroon" href="#shop">Shop the collection</a></div></div>`;
-  const t=cartTotals();const wa=waNumber();
+  const t=cartTotals();
   const f=(k,l,o={})=>`<div class="f ${o.full?"full":""}" data-f="${k}"><label for="co_${k}">${l}${o.req?" *":""}</label>
     ${o.area?`<textarea id="co_${k}" name="${k}" placeholder="${esc(o.ph||"")}">${esc(coData[k]||"")}</textarea>`:`<input id="co_${k}" name="${k}" type="${o.type||"text"}" autocomplete="${o.ac||"on"}" placeholder="${esc(o.ph||"")}" value="${esc(coData[k]||"")}">`}
     <span class="em">${esc(o.em||"Please fill this in")}</span></div>`;
@@ -795,11 +798,11 @@ function vCheckout(){
     <div class="shophead"><div><h1>Checkout</h1><p>Tell us where to send your order — no account needed.</p></div></div>
     <div class="co">
       <form class="panel" id="coForm" novalidate>
-        <h2>Your details</h2><p class="hint">We'll use these to confirm your order on WhatsApp.</p>
+        <h2>Your details</h2><p class="hint">We'll use these to send your receipt and contact you about delivery.</p>
         <div class="fgrid">
           ${f("name","Full name",{req:1,ac:"name",full:1})}
-          ${f("phone","WhatsApp / mobile number",{req:1,type:"tel",ac:"tel",ph:"e.g. 07700 900123",em:"Please enter a valid phone number"})}
-          ${f("email","Email (optional)",{type:"email",ac:"email"})}
+          ${f("phone","Mobile number",{req:1,type:"tel",ac:"tel",ph:"e.g. 07700 900123",em:"Please enter a valid phone number"})}
+          ${f("email","Email (for your receipt)",{req:1,type:"email",ac:"email",em:"Please enter a valid email address"})}
         </div>
         <h2 style="margin-top:28px">Delivery address</h2><p class="hint">UK delivery. For international orders, message us first.</p>
         <div class="fgrid">
@@ -811,9 +814,10 @@ function vCheckout(){
           ${f("country","Country",{req:1,ac:"country-name"})}
           ${f("notes","Order notes (optional)",{area:1,full:1,ph:"Anything we should know — e.g. need it by a date, blouse fitting notes"})}
         </div>
-        <div class="wa-note">${icon("wa")}<div><b>How payment works:</b> tapping the button opens WhatsApp with your order filled in. Just press send — we'll reply with payment details, and dispatch as soon as payment is confirmed.</div></div>
-        ${wa?`<button type="submit" class="btn btn-wa block">${icon("wa")} Place order on WhatsApp</button>`:
-          `<div class="banner">${S.isAdmin?`Add your WhatsApp number in <a class="link" href="#admin" data-act="settab" data-tab="settings">Admin → Settings</a> so customers can send orders.`:"Online ordering is being set up. Please check back soon."}</div><button type="button" class="btn btn-wa block disabled" disabled>${icon("wa")} Place order on WhatsApp</button>`}
+        <div class="pay-note">${icon("shield")}<div><b>Secure card payment by Stripe.</b> You'll pay on Stripe's secure page with a debit/credit card, Apple Pay or Google Pay. We never see your card details.</div></div>
+        <div class="err-msg" id="payErr" style="margin:-6px 0 10px"></div>
+        <button type="submit" class="btn btn-maroon block" id="payBtn" data-mode="pay">${icon("shield")} Pay ${money(t.total)} securely</button>
+        <div class="paycards">Visa · Mastercard · Amex · Apple Pay · Google Pay</div>
         <p class="note" style="text-align:center;margin:10px 0 0">Your details are only used to process this order.</p>
       </form>
       <aside class="panel sumcol">
@@ -828,52 +832,71 @@ function vCheckout(){
     </div>
   </div>`;
 }
-function orderMessage(ref,d){
-  const t=cartTotals();
-  const lines=S.cart.map((i,n)=>{const p=prodById(i.id);return `${n+1}. ${p.name}${i.color?` — ${i.color}`:""}${i.size?` — ${p.sizeLabel||"Size"} ${i.size}`:""} × ${i.qty} = ${money(p.price*i.qty)}`});
-  return [
-    `*New order — ELORA*`,`Order ref: ${ref}`,``,`*Items*`,...lines,``,
-    `Subtotal: ${money(t.sub)}`,`Delivery: ${t.ship?money(t.ship):"Free"}`,`*Total: ${money(t.total)}*`,``,
-    `*Customer*`,d.name,`Phone: ${d.phone}`,d.email?`Email: ${d.email}`:null,``,
-    `*Delivery address*`,d.line1,d.line2||null,[d.city,d.county].filter(Boolean).join(", "),d.postcode.toUpperCase(),d.country,
-    d.notes?`\n*Notes*\n${d.notes}`:null,``,`Please send me the payment details to confirm my order. Thank you!`
-  ].filter(x=>x!==null).join("\n");
-}
-function submitCheckout(e){
+async function submitCheckout(e){
   e.preventDefault();
+  const mode="pay";
   const form=$("#coForm");const d={};let ok=true,first=null;
   form.querySelectorAll("[name]").forEach(el=>{d[el.name]=el.value.trim()});
   const req=["name","phone","line1","city","postcode","country"];
   form.querySelectorAll(".f").forEach(w=>w.classList.remove("bad"));
-  req.forEach(k=>{let bad=!d[k];if(k==="phone"&&d[k].replace(/[^0-9]/g,"").length<7)bad=true;if(bad){ok=false;const w=form.querySelector(`[data-f="${k}"]`);w.classList.add("bad");first=first||w}});
+  if(mode==="pay")req.push("email");
+  req.forEach(k=>{let bad=!d[k];if(k==="email"&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d[k]))bad=true;if(k==="phone"&&d[k].replace(/[^0-9]/g,"").length<7)bad=true;if(bad){ok=false;const w=form.querySelector(`[data-f="${k}"]`);w.classList.add("bad");first=first||w}});
   if(!ok){first.scrollIntoView({behavior:"smooth",block:"center"});first.querySelector("input,textarea").focus();return}
   Object.assign(coData,d);store.set("addr",{...coData,notes:""});
   const ref="ELR-"+Date.now().toString(36).toUpperCase().slice(-6);
-  const msg=orderMessage(ref,d);
-  S.lastOrder={ref,msg,url:`https://wa.me/${waNumber()}?text=${encodeURIComponent(msg)}`,total:cartTotals().total};
-  S.cart=[];store.set("cart",S.cart);updateCounts();
-  location.hash="order-sent";
+  return startPayment(ref,d);
 }
-function vOrderSent(){
-  const o=S.lastOrder;if(!o)return vHome();
+async function startPayment(ref,d){
+  const btn=$("#payBtn"),err=$("#payErr");err.textContent="";
+  const old=btn.innerHTML;btn.innerHTML=`<span class="loading"></span> Taking you to secure payment…`;btn.classList.add("disabled");
+  try{
+    const r=await fetch("/api/checkout",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ref,customer:d,items:S.cart.map(i=>({id:i.id,name:prodById(i.id)?.name,size:i.size,color:i.color,qty:i.qty}))})});
+    let j={};try{j=await r.json()}catch(x){}
+    if(!r.ok||!j.url)throw new Error(j.error||(r.status===404?"Card payments aren't available on this version of the site.":"We couldn't start the payment. Please try again."));
+    store.set("pending",{ref:j.ref||ref,at:Date.now()});
+    location.href=j.url;
+  }catch(x){
+    err.textContent=x.message;
+    btn.innerHTML=old;btn.classList.remove("disabled");
+  }
+}
+const paidState={};
+function vOrderSuccess(){
+  const id=new URLSearchParams(location.search).get("session_id");
+  if(!id)return vHome();
+  const st=paidState[id];
+  if(!st){
+    paidState[id]={loading:true};
+    fetch("/api/session?id="+encodeURIComponent(id)).then(r=>r.json()).then(j=>{
+      paidState[id]=j;
+      if(j.paid){S.cart=[];store.set("cart",S.cart);store.set("pending",null);updateCounts()}
+      if(location.hash==="#order-success")route(true);
+    }).catch(()=>{paidState[id]={error:"We couldn't check your payment just now."};route(true)});
+  }
+  if(!st||st.loading)return `<div class="wrap"><div class="done"><span class="loading"></span><p>Confirming your payment…</p></div></div>`;
+  if(st.error||!st.paid)return `<div class="wrap"><div class="done">
+    <h1 style="font-size:34px;margin:8px 0 10px">Payment not completed</h1>
+    <p style="color:var(--muted)">${esc(st.error||"Your payment hasn't gone through, so you haven't been charged.")} Your bag is still saved.</p>
+    <a class="btn btn-maroon" href="#checkout">Back to checkout</a></div></div>`;
   return `<div class="wrap"><div class="done">
     <div class="tick">${icon("check")}</div>
-    <div class="kicker" style="color:var(--gold-d)">Order ${esc(o.ref)}</div>
-    <h1 style="font-size:38px;margin:8px 0 10px">One last step</h1>
-    <p style="color:var(--muted);margin:0 0 22px">Tap below to open WhatsApp with your order ready to send. Press <b>send</b> and we'll reply with payment details. Your order is confirmed once payment is received.</p>
-    <a class="btn btn-wa" href="${esc(o.url)}" target="_blank" rel="noopener">${icon("wa")} Send order on WhatsApp</a>
-    <p class="note" style="margin-top:14px">WhatsApp didn't open? Message us at <b>+${esc(waNumber())}</b> and paste your order below.</p>
-    <div class="msgbox" id="orderMsg">${esc(o.msg)}</div>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn btn-line btn-sm" data-act="copyorder">Copy order details</button><a class="btn btn-line btn-sm" href="#shop">Continue shopping</a></div>
+    <div class="kicker" style="color:var(--gold-d)">Order ${esc(st.ref)}</div>
+    <h1 style="font-size:38px;margin:8px 0 10px">Thank you${st.name?", "+esc(st.name.split(" ")[0]):""}!</h1>
+    <p style="color:var(--muted);margin:0 0 6px">Your payment of <b>${money(st.total)}</b> was successful. A receipt has been sent to <b>${esc(st.email||"your email")}</b>.</p>
+    <p style="color:var(--muted);margin:0 0 18px">We'll pack your order and let you know when it's on its way.</p>
+    ${st.testMode?`<div class="banner" style="text-align:left">This was a <b>test payment</b> — no real money was taken.</div>`:""}
+    <div class="msgbox">${(st.items||[]).map(i=>`${esc(i.name)} × ${i.qty} — ${money(i.total)}`).join("\n")}${st.shipping?`\nDelivery — ${money(st.shipping)}`:"\nDelivery — Free"}\n<b>Total — ${money(st.total)}</b></div>
+    <a class="btn btn-line btn-sm" href="#shop">Continue shopping</a>
   </div></div>`;
 }
 function vHow(){return `<div class="wrap"><div class="crumbs"><a href="#">Home</a><span class="sep">›</span>How to order</div>
-  <div class="shophead"><div><h1>How to Order</h1><p>Shopping with Elora is personal — every order is confirmed by us on WhatsApp.</p></div></div></div>
+  <div class="shophead"><div><h1>How to Order</h1><p>No account needed — choose, pay securely and we'll do the rest.</p></div></div></div>
   <section class="s how" style="margin-bottom:0"><div class="wrap">${stepsHtml()}</div></section>
   <div class="wrap" style="padding:40px 20px 50px;max-width:820px">
     <div class="acc">
-      <details open><summary>Do I need an account?</summary><div class="ac">No. Just add pieces to your bag, enter your delivery details and send your order on WhatsApp.</div></details>
-      <details><summary>How do I pay?</summary><div class="ac">After you send your order, we reply on WhatsApp with payment details (usually bank transfer). Once we see the payment, your order is confirmed and packed.</div></details>
+      <details open><summary>Do I need an account?</summary><div class="ac">No. Just add pieces to your bag, enter your delivery details and pay at checkout.</div></details>
+      <details><summary>How do I pay?</summary><div class="ac">At checkout you pay on Stripe's secure payment page by debit or credit card, Apple Pay or Google Pay. We never see your card details. You'll get an email receipt straight away.</div></details>
       <details><summary>How long does delivery take?</summary><div class="ac">Orders are dispatched within 2–4 working days of payment. UK delivery usually takes 2–3 working days after dispatch.</div></details>
       <details><summary>Can I ask about fit or colour first?</summary><div class="ac">Of course — message us on WhatsApp${waNumber()?` at +${esc(waNumber())}`:""} and we'll send extra photos or measurements.</div></details>
     </div>
@@ -884,7 +907,7 @@ function vPolicies(){const st=S.settings;return `<div class="wrap" style="max-wi
   <div class="shophead"><div><h1>Delivery, Returns & Sizing</h1></div></div>
   <div class="acc">
     <details open><summary>Shipping policy</summary><div class="ac">We deliver across the UK. Delivery costs ${money(st.deliveryFee)} and is free on orders over ${money(st.freeOver)}.
-Orders are dispatched within 2–4 working days once payment is confirmed. You'll receive tracking details on WhatsApp.</div></details>
+Orders are dispatched within 2–4 working days once payment is confirmed. You'll receive tracking details by email.</div></details>
     <details><summary>Return & exchange policy</summary><div class="ac">We accept exchanges within 7 days of delivery on unworn items with original tags and packaging. Customised or altered pieces cannot be returned.
 To arrange an exchange, message us on WhatsApp with your order reference.</div></details>
     <details><summary>Size guide</summary><div class="ac">${sizeTable()}</div></details>
@@ -922,7 +945,6 @@ function vAdmin(){
         <a class="btn btn-line btn-sm" href="#">View store</a>${DEMO?`<button class="btn btn-sm" style="color:var(--muted)" data-act="demologout">Log out</button>`:""}</div></div>
     ${DEMO?`<div class="banner"><b>Demo mode — for testing and client preview.</b> Everything you add or change is saved only in this browser, so other visitors won't see it. <button class="link" data-act="demoreset">Reset demo data</button></div>`:""}
     ${!S.live&&!DEMO?`<div class="banner">Your store is showing the starter catalogue. ${S.products.length?"":""}<button class="link" data-act="seed">Load the starter catalogue into your store</button> to start editing it, or add your own categories and products.</div>`:""}
-    ${!waNumber()?`<div class="banner">Customers can't place orders until you add your WhatsApp number in <button class="link" data-act="settab" data-tab="settings">Settings</button>.</div>`:""}
     <div class="tabs">${[["products","Products ("+S.products.length+")"],["categories","Categories ("+S.categories.length+")"],["settings","Settings"],["orders","Orders"]].map(([k,t])=>`<button class="${tab===k?"on":""}" data-act="settab" data-tab="${k}">${t}</button>`).join("")}</div>
     ${tab==="products"?adminProducts():tab==="categories"?adminCats():tab==="settings"?adminSettings():adminOrders()}
   </div>`;
@@ -947,7 +969,7 @@ function adminSettings(){
   const s=S.settings;const hero=(s.hero||[]).concat([{},{},{}]).slice(0,Math.max(3,(s.hero||[]).length));
   const fi=(k,l,v,o={})=>`<div class="f ${o.full?"full":""}"><label>${l}</label><input data-s="${k}" type="${o.type||"text"}" value="${esc(v??"")}" placeholder="${esc(o.ph||"")}" ${o.step?`step="${o.step}"`:""}></div>`;
   return `<form id="setForm" class="panel" style="max-width:860px">
-    <h2>Ordering</h2><p class="hint">Orders are sent to this WhatsApp number. Include the country code, e.g. 447700900123 for a UK mobile.</p>
+    <h2>Contact & delivery</h2><p class="hint">WhatsApp number shown to customers for questions (optional). Include the country code, e.g. 447700900123. Payments are taken by card through Stripe.</p>
     <div class="fgrid">${fi("whatsapp","WhatsApp number",s.whatsapp,{ph:"447700900123",full:1})}
       ${fi("deliveryFee","Delivery fee ("+cur()+")",s.deliveryFee,{type:"number",step:"0.01"})}
       ${fi("freeOver","Free delivery over ("+cur()+")",s.freeOver,{type:"number",step:"0.01"})}
@@ -973,9 +995,8 @@ function adminSettings(){
 }
 function adminOrders(){return `<div class="panel" style="max-width:760px">
   <h2>Where do orders go?</h2>
-  <p>Customers don't create accounts. When they check out, their order — items, sizes, colours, total, name, phone and full address — opens as a ready-to-send WhatsApp message to <b>${waNumber()?"+"+esc(waNumber()):"your WhatsApp number (not set yet)"}</b>.</p>
-  <p>Reply to that chat with your payment details. Once you see the payment, confirm the order and dispatch it. Every message includes an order reference (e.g. ELR-AB12CD) so you can match payments.</p>
-  <p class="note">Tip: pin a saved reply in WhatsApp Business with your bank details to answer orders in one tap.</p></div>`}
+  <p><b>Card orders</b> are paid through Stripe. Each one appears in your <a class="link" href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Stripe Dashboard → Payments</a> with the order reference (e.g. ELR-AB12CD), items with size and colour, the customer's name, phone, email and delivery address. Stripe can also email you for every successful payment (Dashboard → Settings → Email notifications).</p>
+  <p class="note">While Stripe is in test mode, use card 4242 4242 4242 4242 with any future date and any CVC — no real money moves.</p></div>`}
 
 function productForm(p){
   const isNew=!S.products.some(x=>x.id===p.id);
@@ -1073,7 +1094,7 @@ function route(keepScroll){
   else if(h.startsWith("c-"))html=vShop(h.slice(2));
   else if(h.startsWith("p-"))html=vProduct(h.slice(2));
   else if(h==="checkout")html=vCheckout();
-  else if(h==="order-sent")html=vOrderSent();
+  else if(h==="order-success")html=vOrderSuccess();
   else if(h==="how-to-order")html=vHow();
   else if(h==="policies")html=vPolicies();
   else if(h==="admin")html=vAdmin();
@@ -1141,7 +1162,6 @@ document.addEventListener("click",async e=>{
     case "zoom":{const im=t.querySelector("img");openModal(`<img src="${esc(im.getAttribute("src"))}" alt="" data-act="closemodal">`,"zoom");break}
     case "cqty":{const i=S.cart[+t.dataset.i];i.qty=Math.max(1,Math.min(20,i.qty+(+t.dataset.d)));store.set("cart",S.cart);updateCounts();renderCart();break}
     case "crm":S.cart.splice(+t.dataset.i,1);store.set("cart",S.cart);updateCounts();renderCart();break;
-    case "copyorder":try{await navigator.clipboard.writeText(S.lastOrder.msg);toast("Order details copied")}catch(err){const r=document.createRange();r.selectNodeContents($("#orderMsg"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Selected — copy with your keyboard")}break;
     case "closemodal":closeModal();break;
     // admin
     case "settab":S.adminTab=t.dataset.tab;if(location.hash!=="#admin"){e.preventDefault();location.hash="admin"}else route(true);break;
