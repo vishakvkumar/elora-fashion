@@ -4,28 +4,46 @@ require __DIR__ . '/_bootstrap.php';
 $action = (string)($_GET['action'] ?? '');
 start_session();
 
-if ($action === 'me') json_out(['admin' => is_admin(), 'csrf' => is_admin() ? $_SESSION['csrf'] : null, 'configured' => ADMIN_PASSWORD !== '', 'payments' => STRIPE_KEY !== '']);
+if ($action === 'me') json_out(['admin' => is_admin(), 'csrf' => is_admin() ? $_SESSION['csrf'] : null, 'username' => is_admin() ? ($_SESSION['user'] ?? '') : null,
+    'mustChange' => is_admin() && !empty($_SESSION['mustChange']), 'configured' => load_admin() !== null, 'payments' => STRIPE_KEY !== '']);
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') fail('Method not allowed', 405);
 
 if ($action === 'login') {
-    if (ADMIN_PASSWORD === '') fail('The admin password has not been set yet. Add it to api/config.php.', 503);
-    $now = time();
-    $_SESSION['fails'] = array_values(array_filter($_SESSION['fails'] ?? [], fn($t) => $t > $now - 900));
-    if (count($_SESSION['fails']) >= 5) fail('Too many attempts. Please wait 15 minutes and try again.', 429);
-    $pw = (string)(read_json_body()['password'] ?? '');
-    $ok = str_starts_with(ADMIN_PASSWORD, '$2y$') ? password_verify($pw, ADMIN_PASSWORD) : hash_equals(ADMIN_PASSWORD, $pw);
-    if (!$ok) { $_SESSION['fails'][] = $now; usleep(800000); fail('Wrong password.', 401); }
+    $admin = load_admin();
+    if (!$admin) fail('The admin login has not been set up on the server yet.', 503);
+    rate_check();
+    $in = read_json_body();
+    $user = trim((string)($in['username'] ?? '')); $pw = (string)($in['password'] ?? '');
+    $ok = hash_equals(strtolower($admin['username']), strtolower($user)) & password_verify($pw, $admin['hash']);
+    if (!$ok) { rate_check(true); usleep(800000); fail('Wrong username or password.', 401); }
     session_regenerate_id(true);
     $_SESSION['admin'] = true;
-    $_SESSION['fails'] = [];
+    $_SESSION['user'] = $admin['username'];
+    $_SESSION['mustChange'] = !empty($admin['mustChange']);
     $_SESSION['csrf'] = bin2hex(random_bytes(24));
-    json_out(['admin' => true, 'csrf' => $_SESSION['csrf']]);
+    json_out(['admin' => true, 'csrf' => $_SESSION['csrf'], 'username' => $admin['username'], 'mustChange' => $_SESSION['mustChange']]);
 }
 
 if ($action === 'logout') { $_SESSION = []; session_destroy(); json_out(['admin' => false]); }
 
 require_admin();
+
+if ($action === 'change_credentials') {
+    $in = read_json_body();
+    $admin = load_admin() ?: fail('Admin login not set up.', 503);
+    $forced = !empty($_SESSION['mustChange']);
+    if (!$forced && !password_verify((string)($in['currentPassword'] ?? ''), $admin['hash'])) { rate_check(true); fail('Your current password is wrong.', 401); }
+    $user = trim((string)($in['username'] ?? '')); $pw = (string)($in['password'] ?? '');
+    if (!preg_match('/^[A-Za-z0-9._@-]{3,40}$/', $user)) fail('Username must be 3–40 characters: letters, numbers, dot, dash, underscore or @.');
+    if (strlen($pw) < 10 || !preg_match('/[A-Za-z]/', $pw) || !preg_match('/[0-9]/', $pw)) fail('Password must be at least 10 characters and include letters and numbers.');
+    if (password_verify($pw, $admin['hash'])) fail('Choose a new password, different from the current one.');
+    save_admin(['username' => $user, 'hash' => password_hash($pw, PASSWORD_DEFAULT), 'mustChange' => false, 'changedAt' => date('c')]);
+    session_regenerate_id(true);
+    $_SESSION['user'] = $user; $_SESSION['mustChange'] = false; $_SESSION['csrf'] = bin2hex(random_bytes(24));
+    json_out(['ok' => true, 'csrf' => $_SESSION['csrf'], 'username' => $user]);
+}
+if (!empty($_SESSION['mustChange'])) fail('Please set your own username and password first.', 403);
 
 function clean_product(array $d): array {
     $colors = [];
@@ -96,7 +114,7 @@ switch ($action) {
         $d = read_json_body()['data'] ?? [];
         if (!is_array($d)) fail('Invalid settings.');
         $hero = [];
-        foreach (array_slice($d['hero'] ?? [], 0, 6) as $h) {
+        foreach (array_slice($d['hero'] ?? [], 0, 10) as $h) {
             if (!is_array($h) || !valid_img($h['image'] ?? '')) continue;
             $hero[] = ['image' => $h['image'], 'kicker' => str_clip($h['kicker'] ?? '', 80), 'title' => str_clip($h['title'] ?? '', 80),
                        'sub' => str_clip($h['sub'] ?? '', 80), 'link' => preg_match('/^(shop|c-[a-z0-9-]+)$/', (string)($h['link'] ?? '')) ? $h['link'] : 'shop'];

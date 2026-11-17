@@ -4,12 +4,20 @@ Options -Indexes
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  # Always use https://elorafashion.co.uk (no www).
-  # Switched off until a trusted SSL certificate is installed - remove the # from the 4 lines below then.
+  # https is enforced by Cloudflare ("Always Use HTTPS"), so this origin redirect stays off
+  # to avoid redirect loops. Only re-enable if the site stops using Cloudflare.
   # RewriteCond %{HTTP_HOST} ^(www\.)?elorafashion\.co\.uk$ [NC]
   # RewriteCond %{HTTPS} !=on [OR]
   # RewriteCond %{HTTP_HOST} ^www\. [NC]
   # RewriteRule ^ https://elorafashion.co.uk%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>
 
 # Keep repo housekeeping files private

@@ -10,6 +10,45 @@ define('STRIPE_KEY', getenv('STRIPE_SECRET_KEY') ?: ($CONFIG['stripe_secret_key'
 define('ADMIN_PASSWORD', getenv('ELORA_ADMIN_PASSWORD') ?: ($CONFIG['admin_password'] ?? ''));
 define('DATA_FILE', dirname(__DIR__) . '/data/store.json');
 define('UPLOAD_DIR', dirname(__DIR__) . '/uploads');
+define('ADMIN_FILE', dirname(__DIR__) . '/data/admin.json');
+define('RATE_FILE', dirname(__DIR__) . '/data/login-attempts.json');
+
+/** Admin login: data/admin.json {username, hash, mustChange}. Falls back to api/config.php for first setup. */
+function load_admin(): ?array {
+    if (is_file(ADMIN_FILE)) {
+        $a = json_decode((string)file_get_contents(ADMIN_FILE), true);
+        if (is_array($a) && !empty($a['username']) && !empty($a['hash'])) return $a;
+    }
+    if (ADMIN_PASSWORD !== '') {
+        global $CONFIG;
+        $pw = ADMIN_PASSWORD;
+        return ['username' => $CONFIG['admin_username'] ?? 'admin',
+                'hash' => str_starts_with($pw, '$2y$') ? $pw : password_hash($pw, PASSWORD_DEFAULT),
+                'mustChange' => true];
+    }
+    return null;
+}
+function save_admin(array $a): void {
+    $tmp = ADMIN_FILE . '.tmp';
+    if (file_put_contents($tmp, json_encode($a, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) === false || !rename($tmp, ADMIN_FILE)) {
+        fail('Could not save the new login. Check that the data folder is writable.', 500);
+    }
+    @chmod(ADMIN_FILE, 0600);
+}
+/** Failed-login lockout per IP address (5 tries per 15 minutes), stored on the server so clearing cookies doesn't reset it. */
+function client_ip(): string { return $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? '0'; }
+function rate_check(bool $record_fail = false): void {
+    $fh = @fopen(RATE_FILE, 'c+'); if (!$fh) return;
+    flock($fh, LOCK_EX);
+    $all = json_decode((string)stream_get_contents($fh), true) ?: [];
+    $now = time(); $ip = hash('sha256', client_ip());
+    foreach ($all as $k => $ts) { $all[$k] = array_values(array_filter((array)$ts, fn($t) => $t > $now - 900)); if (!$all[$k]) unset($all[$k]); }
+    $blocked = count($all[$ip] ?? []) >= 5;
+    if ($record_fail) $all[$ip][] = $now;
+    ftruncate($fh, 0); rewind($fh); fwrite($fh, json_encode($all));
+    flock($fh, LOCK_UN); fclose($fh);
+    if ($blocked) fail('Too many attempts. Please wait 15 minutes and try again.', 429);
+}
 
 header('X-Content-Type-Options: nosniff');
 if (!function_exists('str_starts_with')) { function str_starts_with($h, $n) { return strncmp((string)$h, (string)$n, strlen((string)$n)) === 0; } }

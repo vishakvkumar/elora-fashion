@@ -40,10 +40,10 @@ This is the version to go live with. It needs an ordinary web hosting plan with:
 1. Upload everything in this repo to the website folder (usually `public_html`).
 2. In `api/`, copy `config.sample.php` to `config.php` and fill in:
    - `stripe_secret_key`: from Stripe → Developers → API keys (`sk_test_…` while testing)
-   - `admin_password`: a long password for the admin panel
+   - `admin_username` / `admin_password`: the first-time admin login (or place a ready-made `data/admin.json`)
 3. Make `data/` and `uploads/` writable by the website (permissions 755, or 775 if saving fails).
 4. Turn on HTTPS for the domain.
-5. Open `https://yourdomain/#admin` and log in. Products, categories, photos and settings now save on the server for every visitor.
+5. Open `https://yourdomain/#admin` and log in. On the first login the admin must choose a new username and password; these are stored only as a bcrypt hash in `data/admin.json`. They can be changed any time under Admin → **Login & security**. After 5 wrong attempts from one IP address, logins lock for 15 minutes.
 
 ### Test a payment
 Use card `4242 4242 4242 4242`, any future date and any CVC. The order appears in Admin → Orders and in the Stripe Dashboard.
@@ -68,4 +68,4 @@ Finish Stripe's business verification, then replace the test key in `api/config.
 | `uploads/` | Photos added through the admin panel |
 
 ## Preview on GitHub Pages / Vercel
-Without PHP, the site runs as a demo: the admin panel (password `elora123`) saves only in the visitor's browser. On Vercel, `api/checkout.js` and `api/session.js` provide Stripe checkout if `STRIPE_SECRET_KEY` is set in the project's environment variables.
+Without PHP, the site runs as a demo: the admin panel saves only in the visitor's browser. Demo login: username `elora.admin`, password `Demo-Elora-2026` (public test credentials, used only for the demo). On Vercel, `api/checkout.js` and `api/session.js` provide Stripe checkout if `STRIPE_SECRET_KEY` is set in the project's environment variables.

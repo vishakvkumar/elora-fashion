@@ -4,3 +4,6 @@ data/store.json.tmp
 uploads/*
 !uploads/.htaccess
 !uploads/.gitkeep
+data/admin.json
+data/admin.json.tmp
+data/login-attempts.json
