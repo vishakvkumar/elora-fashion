@@ -6,7 +6,7 @@ deployment:
   tasks:
     - export DEPLOYPATH=$HOME/public_html
     - /bin/mkdir -p $DEPLOYPATH/img $DEPLOYPATH/api $DEPLOYPATH/data $DEPLOYPATH/uploads
-    - /bin/cp -f index.html catalog.js $DEPLOYPATH/
+    - /bin/cp -f index.html catalog.js .htaccess $DEPLOYPATH/
     - /bin/cp -f img/* $DEPLOYPATH/img/
     - /bin/cp -f api/_bootstrap.php api/admin.php api/checkout.php api/session.php api/store.php api/config.sample.php api/.htaccess $DEPLOYPATH/api/
     - /bin/cp -f data/.htaccess $DEPLOYPATH/data/
