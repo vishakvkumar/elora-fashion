@@ -4,11 +4,12 @@ Options -Indexes
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  # Always use https://elorafashion.co.uk (no www)
-  RewriteCond %{HTTP_HOST} ^(www\.)?elorafashion\.co\.uk$ [NC]
-  RewriteCond %{HTTPS} !=on [OR]
-  RewriteCond %{HTTP_HOST} ^www\. [NC]
-  RewriteRule ^ https://elorafashion.co.uk%{REQUEST_URI} [L,R=301]
+  # Always use https://elorafashion.co.uk (no www).
+  # Switched off until a trusted SSL certificate is installed - remove the # from the 4 lines below then.
+  # RewriteCond %{HTTP_HOST} ^(www\.)?elorafashion\.co\.uk$ [NC]
+  # RewriteCond %{HTTPS} !=on [OR]
+  # RewriteCond %{HTTP_HOST} ^www\. [NC]
+  # RewriteRule ^ https://elorafashion.co.uk%{REQUEST_URI} [L,R=301]
 </IfModule>
 
 # Keep repo housekeeping files private
