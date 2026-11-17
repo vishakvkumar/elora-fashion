@@ -1,0 +1,15 @@
+---
+# cPanel Git deployment for Elora.
+# Copies the site into public_html. Never overwrites the live shop data
+# (data/store.json, uploads/) or the private api/config.php.
+deployment:
+  tasks:
+    - export DEPLOYPATH=$HOME/public_html
+    - /bin/mkdir -p $DEPLOYPATH/img $DEPLOYPATH/api $DEPLOYPATH/data $DEPLOYPATH/uploads
+    - /bin/cp -f index.html catalog.js $DEPLOYPATH/
+    - /bin/cp -f img/* $DEPLOYPATH/img/
+    - /bin/cp -f api/_bootstrap.php api/admin.php api/checkout.php api/session.php api/store.php api/config.sample.php api/.htaccess $DEPLOYPATH/api/
+    - /bin/cp -f data/.htaccess $DEPLOYPATH/data/
+    - /bin/cp -n data/store.json $DEPLOYPATH/data/
+    - /bin/cp -f uploads/.htaccess $DEPLOYPATH/uploads/
+    - /bin/chmod 755 $DEPLOYPATH/data $DEPLOYPATH/uploads
