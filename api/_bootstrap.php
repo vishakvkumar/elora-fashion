@@ -12,6 +12,7 @@ define('DATA_FILE', dirname(__DIR__) . '/data/store.json');
 define('UPLOAD_DIR', dirname(__DIR__) . '/uploads');
 
 header('X-Content-Type-Options: nosniff');
+if (!function_exists('str_starts_with')) { function str_starts_with($h, $n) { return strncmp((string)$h, (string)$n, strlen((string)$n)) === 0; } }
 
 function json_out($data, int $status = 200): void {
     http_response_code($status);
