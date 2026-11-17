@@ -41,9 +41,14 @@ header.top{background:var(--cream);position:sticky;top:0;z-index:40;border-botto
 .hnav a{padding:6px 0;border-bottom:1px solid transparent;transition:border-color .2s,color .2s}
 .hnav a:hover,.hnav a.on{color:var(--maroon);border-color:var(--gold)}
 .hnav.r{justify-content:flex-start}
-.logo{display:block;width:150px;height:86px;margin-top:22px;border-radius:10px;box-shadow:0 0 0 3px var(--cream),0 0 0 4px var(--gold),0 12px 26px -10px rgba(63,9,32,.5);overflow:hidden;background:var(--maroon);position:relative;z-index:2;transition:transform .3s}
+.logo{display:block;width:150px;height:86px;margin-top:22px;margin-inline:22px;border-radius:10px;box-shadow:0 0 0 3px var(--cream),0 0 0 4px var(--gold),0 12px 26px -10px rgba(63,9,32,.5);overflow:hidden;background:var(--maroon);position:relative;z-index:2;transition:transform .3s,width .3s,height .3s,margin .3s,box-shadow .3s}
 .logo:hover{transform:scale(1.03)}
 .logo img{width:100%;height:100%;object-fit:cover}
+header.top{transition:box-shadow .3s}
+header.top.scrolled{box-shadow:0 6px 18px -12px rgba(63,9,32,.35)}
+header.top.scrolled .logo{width:100px;height:57px;margin-top:0;box-shadow:0 0 0 2px var(--cream),0 0 0 3px var(--gold)}
+header.top.compact .hnav{display:none}
+header.top.compact .menu-btn{display:grid}
 .hicons{display:flex;justify-content:flex-end;gap:6px;align-items:center}
 .ib{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;position:relative;transition:background .2s}
 .ib:hover{background:var(--cream-2)}
@@ -337,16 +342,15 @@ table.sg th{color:var(--maroon);font-weight:500}
 @keyframes sp{to{transform:rotate(360deg)}}
 
 /* responsive */
-@media (max-width:1400px){
-  .hnav{display:none}
-  .menu-btn{display:grid}
-}
 @media (max-width:1080px){
   .grid{grid-template-columns:repeat(3,1fr)}
 }
 @media (max-width:900px){
   .hbar{height:66px}
-  .logo{width:118px;height:68px;margin-top:16px}
+  .hnav{display:none}
+  .menu-btn{display:grid}
+  .logo{width:118px;height:68px;margin-top:16px;margin-inline:10px}
+  header.top.scrolled .logo{width:88px;height:50px;margin-top:0}
   .slides{height:auto;aspect-ratio:4/5;max-height:640px}
   .slide{grid-template-columns:1fr}
   .slide .pic{position:absolute;inset:0}
@@ -370,7 +374,8 @@ table.sg th{color:var(--maroon);font-weight:500}
   .cats{grid-template-columns:repeat(2,1fr);gap:12px}
 }
 @media (max-width:560px){
-  .logo{width:96px;height:55px;margin-top:12px}
+  .logo{width:96px;height:55px;margin-top:12px;margin-inline:6px}
+  header.top.scrolled .logo{width:80px;height:46px;margin-top:0}
   .hicons{gap:0}
   .ib{width:38px;height:38px}
   section.s{padding:46px 0}
@@ -426,7 +431,7 @@ table.sg th{color:var(--maroon);font-weight:500}
       <nav class="hnav" id="navL"></nav>
     </div>
     <a href="#" class="logo" aria-label="Elora home"><img src="img/logo-rect.jpg" alt="Elora — Timeless fashion for all generations"></a>
-    <div style="display:flex;align-items:center;justify-content:flex-end;gap:20px">
+    <div class="hright" style="display:flex;align-items:center;justify-content:flex-end;gap:20px;min-width:0">
       <nav class="hnav r" id="navR"></nav>
       <div class="hicons">
         <a href="#admin" class="adminpill" id="adminPill">Admin</a>
@@ -642,6 +647,7 @@ function renderChrome(){
   $("#yr").textContent=new Date().getFullYear();
   updateCounts();
   startAnn();
+  fitNav();
 }
 function safeUrl(u){u=String(u||"").trim();return /^https?:\/\//i.test(u)?u:(u?"https://"+u.replace(/^\/+/,""):"#")}
 function startAnn(){
@@ -1364,6 +1370,19 @@ document.addEventListener("touchend",e=>{if(tx==null)return;const dx=e.changedTo
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAll();closeModal()}});
 window.addEventListener("hashchange",()=>{closeAll();closeModal();route()});
 
+/* Header: shrink the logo into the bar on scroll; fall back to the ☰ menu when the links don't fit */
+function fitNav(){
+  const h=$("header.top");if(!h)return;h.classList.remove("compact");
+  if(innerWidth<=900)return;
+  const bar=h.querySelector(".hbar").getBoundingClientRect(),mid=bar.left+bar.width/2,half=75+22+8;
+  const L=$("#navL"),Rn=$("#navR"),RW=h.querySelector(".hright");
+  const l=L.lastElementChild?L.lastElementChild.getBoundingClientRect().right:0;
+  const r=(Rn.firstElementChild||RW.firstElementChild).getBoundingClientRect().left;
+  if(L.scrollWidth>L.clientWidth+1||Rn.scrollWidth>Rn.clientWidth+1||l>mid-half||r<mid+half)h.classList.add("compact");
+}
+addEventListener("resize",fitNav);
+try{document.fonts&&document.fonts.ready.then(fitNav)}catch(e){}
+addEventListener("scroll",()=>{const h=$("header.top");if(h)h.classList.toggle("scrolled",scrollY>30)},{passive:true});
 renderChrome();route();initLive().finally(()=>readyResolve());
 </script>
 </body>
