@@ -38,36 +38,37 @@ svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stro
 .ann .dot{color:var(--gold)}
 
 /* header */
-header.top{background:var(--cream);position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
+header.top{background:linear-gradient(180deg,var(--maroon-d) 0%,#360719 100%);color:var(--gold-l);position:sticky;top:0;z-index:40;border-bottom:1px solid rgba(196,154,90,.35)}
 .hbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:28px;height:76px}
 .hright{display:flex;align-items:center;justify-content:flex-end;min-width:0}
 .hnav{display:flex;justify-content:center;gap:26px;overflow:hidden;min-width:0;font-size:12px;letter-spacing:.12em;white-space:nowrap;text-transform:uppercase;font-weight:500}
 .hnav a{padding:6px 0;border-bottom:1px solid transparent;transition:border-color .2s,color .2s}
-.hnav a:hover,.hnav a.on{color:var(--maroon);border-color:var(--gold)}
+.hnav a{color:rgba(250,236,210,.88)}
+.hnav a:hover,.hnav a.on{color:#f6e3bc;border-color:var(--gold)}
 .hnav.r{justify-content:flex-start}
-.logo{display:block;flex:none;width:226px;height:60px;margin-inline:4px;border-radius:8px;box-shadow:0 0 0 2px var(--cream),0 0 0 3px var(--gold),0 8px 18px -10px rgba(63,9,32,.45);overflow:hidden;background:var(--maroon);position:relative;z-index:2;transition:transform .3s,width .3s,height .3s,margin .3s,box-shadow .3s}
-.logo:hover{transform:scale(1.02)}
-.logo img{width:100%;height:100%;object-fit:cover}
+.logo{display:block;flex:none;width:240px;height:57px;margin-inline:4px;position:relative;z-index:2;transition:transform .3s,width .3s,height .3s,filter .3s}
+.logo:hover{transform:scale(1.02);filter:drop-shadow(0 0 10px rgba(232,205,150,.25))}
+.logo img{width:100%;height:100%;object-fit:contain;display:block}
 header.top{transition:box-shadow .3s}
-header.top.scrolled{box-shadow:0 6px 18px -12px rgba(63,9,32,.35)}
-header.top.scrolled .logo{width:188px;height:50px}
+header.top.scrolled{box-shadow:0 8px 22px -12px rgba(42,6,20,.6)}
+header.top.scrolled .logo{width:200px;height:47px}
 header.top.compact .hnav{display:none}
 header.top.compact .menu-btn{display:grid}
 .hicons{display:flex;justify-content:flex-end;gap:6px;align-items:center}
 .ib{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;position:relative;transition:background .2s}
-.ib:hover{background:var(--cream-2)}
-.badge{position:absolute;top:3px;right:2px;min-width:18px;height:18px;border-radius:9px;background:var(--maroon);color:#fff;font-size:10.5px;font-weight:600;display:grid;place-items:center;padding:0 4px}
+.ib:hover{background:rgba(232,205,150,.12)}
+.badge{position:absolute;top:3px;right:2px;min-width:18px;height:18px;border-radius:9px;background:var(--gold);color:var(--maroon-d);font-size:10.5px;font-weight:600;display:grid;place-items:center;padding:0 4px}
 .badge:empty,.badge[data-n="0"]{display:none}
 .menu-btn{display:none}
 .hleft{display:flex;align-items:center;gap:6px}
-.adminpill{white-space:nowrap;flex:none;font-size:11px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--gold);color:var(--maroon);border-radius:20px;padding:6px 12px;margin-right:6px;display:none}
+.adminpill{white-space:nowrap;flex:none;font-size:11px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--gold);color:var(--gold-l);border-radius:20px;padding:6px 12px;margin-right:6px;display:none}
 .adminpill.show{display:inline-block}
 .demo-fab{position:fixed;left:16px;bottom:16px;z-index:70;display:none;align-items:center;gap:8px;background:var(--maroon-d);color:var(--gold-l);border:1px solid var(--gold);border-radius:30px;padding:10px 16px 10px 12px;font-size:12.5px;letter-spacing:.06em;box-shadow:var(--shadow)}
 .demo-fab.show{display:inline-flex}
 .demo-fab b{background:var(--gold);color:var(--maroon-d);border-radius:12px;padding:2px 8px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
 .demo-fab:hover{background:var(--maroon)}
 @media (max-width:560px){.adminpill{display:none!important}}
-.adminpill:hover{background:var(--maroon);color:var(--gold-l)}
+.adminpill:hover{background:var(--gold);color:var(--maroon-d)}
 
 /* mobile drawer */
 .scrim{position:fixed;inset:0;background:rgba(42,23,29,.45);z-index:80;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -288,8 +289,8 @@ footer{background:var(--maroon-d);color:rgba(250,245,238,.85);position:relative;
 footer h4{font-family:var(--serif);font-weight:500;color:#fff7ee;font-size:20px;margin:0 0 14px}
 footer a:hover{color:var(--gold-l)}
 footer ul{list-style:none;padding:0;margin:0;display:grid;gap:9px;font-size:14.5px}
-.flogo{width:300px;max-width:100%;aspect-ratio:3.76;height:auto;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px var(--gold)}
-.flogo img{width:100%;height:100%;object-fit:cover}
+.flogo{width:300px;max-width:100%}
+.flogo img{width:100%;height:auto;display:block}
 .ftag{font-family:var(--caps);letter-spacing:.24em;color:var(--gold-l);font-size:12px;text-transform:uppercase;margin-top:14px;line-height:1.8}
 .social{display:flex;gap:10px;margin-top:6px}
 .social a{width:40px;height:40px;border-radius:50%;border:1px solid rgba(232,205,150,.4);display:grid;place-items:center}
@@ -353,8 +354,8 @@ table.sg th{color:var(--maroon);font-weight:500}
   .hbar{height:66px}
   .hnav{display:none}
   .menu-btn{display:grid}
-  .logo{width:188px;height:50px}
-  header.top.scrolled .logo{width:158px;height:42px}
+  .logo{width:200px;height:47px}
+  header.top.scrolled .logo{width:170px;height:40px}
   .hbar{gap:10px}
   .slides{height:auto;aspect-ratio:4/5;max-height:640px}
   .slide{grid-template-columns:1fr}
@@ -379,8 +380,8 @@ table.sg th{color:var(--maroon);font-weight:500}
   .cats{grid-template-columns:repeat(2,1fr);gap:12px}
 }
 @media (max-width:560px){
-  .logo{width:158px;height:42px;margin-inline:2px}
-  header.top.scrolled .logo{width:136px;height:36px}
+  .logo{width:160px;height:38px;margin-inline:2px}
+  header.top.scrolled .logo{width:140px;height:33px}
   .hicons{gap:0}
   .ib{width:38px;height:38px}
   section.s{padding:46px 0}
@@ -433,7 +434,7 @@ table.sg th{color:var(--maroon);font-weight:500}
   <div class="wrap hbar">
     <div class="hleft">
       <button class="ib menu-btn" data-act="menu" aria-label="Open menu"><svg class="i"><use href="#i-menu"/></svg></button>
-      <a href="#" class="logo" aria-label="Elora home"><img src="img/logo-wide.jpg" alt="Elora — Timeless fashion for all generations"></a>
+      <a href="#" class="logo" aria-label="Elora home"><img src="img/logo-gold.png" alt="Elora — Timeless fashion for all generations"></a>
     </div>
     <nav class="hnav" id="navL" aria-label="Main"></nav>
     <div class="hright">
@@ -455,7 +456,7 @@ table.sg th{color:var(--maroon);font-weight:500}
   <svg class="lotus" style="width:220px;height:220px;right:-40px;bottom:-30px"><use href="#i-lotus"/></svg>
   <div class="wrap fgridf">
     <div>
-      <div class="flogo"><img src="img/logo-wide.jpg" alt="Elora — Timeless fashion for all generations"></div>
+      <div class="flogo"><img src="img/logo-gold.png" alt="Elora — Timeless fashion for all generations"></div>
     </div>
     <div><h4>Shop</h4><ul id="fcats"></ul></div>
     <div><h4>Help</h4><ul>
